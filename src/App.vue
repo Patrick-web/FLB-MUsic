@@ -1,6 +1,5 @@
 <template>
   <div @click="cleanUp" class="Grid">
-
     <PlaylistAdder />
 
     <div class="featuresSwitcherArea">
@@ -157,8 +156,8 @@ export default {
     ...mapMutations([
       "toggleAutoplay",
       "addTrack",
-      "readRecentsFromDB",
-      "readPlaylistsFromDB",
+      "addPlaylist",
+      "loadRecents",
     ]),
     toggleExpansion(e) {
       const panel = e.target.parentElement;
@@ -178,11 +177,29 @@ export default {
     },
   },
   mounted() {
+    electron.ipcRenderer.on("playNow", (event, track) => {
+      if (document.querySelector(".TrackCard"))
+        document.querySelector(".TrackCard").click();
+    });
     electron.ipcRenderer.on("audioWithCover", (event, track) => {
       this.addTrack(track);
     });
-    this.readRecentsFromDB();
-    this.readPlaylistsFromDB();
+    electron.ipcRenderer.on("addToRecents", (event, track) => {
+      this.loadRecents(track);
+    });
+    electron.ipcRenderer.on("addPlaylist", (event, playlists) => {
+      this.addPlaylist(playlists);
+    });
+    const playlists = JSON.parse(localStorage.getItem("playlists"));
+    if (playlists) {
+      electron.ipcRenderer.send("parsePlaylist", playlists);
+    }
+    const recents = JSON.parse(localStorage.getItem("recentlyPlayed"));
+    if (recents) {
+      electron.ipcRenderer.send("parseRecentlyPlayed", recents);
+    }
+    electron.ipcRenderer.send("loadArguments");
+
     String.prototype.toHHMMSS = function() {
       var sec_num = parseInt(this, 10); // don't forget the second param
       var hours = Math.floor(sec_num / 3600);
@@ -200,6 +217,28 @@ export default {
       }
       return hours + ":" + minutes + ":" + seconds;
     };
+    document.addEventListener("drop", (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+
+      const filePaths = Array.from(event.dataTransfer.files).map(
+        (file) => file.path
+      );
+      electron.ipcRenderer.send("processDroppedFiles", filePaths);
+    });
+
+    document.addEventListener("dragover", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+    });
+
+    document.addEventListener("dragenter", (event) => {
+      console.log("File is in the Drop Space");
+    });
+
+    document.addEventListener("dragleave", (event) => {
+      console.log("File has left the Drop Space");
+    });
   },
 };
 </script>
@@ -230,11 +269,11 @@ body {
 }
 .Grid {
   display: grid;
-  grid-template-columns: 0.6fr 4fr 1.2fr;
+  grid-template-columns: 0.2fr 4fr 1.2fr;
+  column-gap: 50px;
 }
 .centralArea {
   overflow: hidden;
-  padding-right: 40px;
   .tabsWrapper {
     width: 600%;
     height: 50vh;
@@ -249,7 +288,7 @@ body {
   align-items: center;
   justify-content: flex-start;
   height: 100vh;
-  padding-left: 20px;
+  padding-left: 40px;
 }
 .tab {
   padding: 10px;

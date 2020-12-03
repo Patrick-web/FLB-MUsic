@@ -1,5 +1,5 @@
 <template>
-  <div v-if="playingTrack" class="TrackBar">
+  <div class="TrackBar">
     <audio :src="playingTrack.path" id="audioTag" autoplay></audio>
 
     <div @click="seek($event)" class="seekBar">
@@ -178,7 +178,7 @@ export default {
 <style lang="scss">
 .TrackBar {
   position: absolute;
-  z-index: 15;
+  z-index: 5;
   left: 0px;
   transform: translateX(-100%);
   height: 100vh;

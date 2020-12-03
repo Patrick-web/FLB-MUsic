@@ -1,7 +1,5 @@
 import Vue from "vue";
 import Vuex from "vuex";
-import localforage from "localforage";
-import { stat } from "fs";
 Vue.use(Vuex);
 
 export default new Vuex.Store({
@@ -33,7 +31,9 @@ export default new Vuex.Store({
     isPlaying: false,
   },
   mutations: {
-    switchTab: (state, tab) => (state.currentTab = tab),
+    switchTab: (state, tab) => {
+      state.currentTab = tab;
+    },
     selectATrack: (state, track) => {
       if (track) {
         state.selectedTrack = track;
@@ -51,25 +51,32 @@ export default new Vuex.Store({
       state.playingTrack = track;
       state.isPlaying = true;
       document.querySelector(".playingPane").classList.remove("favored");
-      state.playlists[0].tracks.forEach((track, index) => {
-        if (track.path == state.playingTrack.path) {
-          state.indexInFavorites = index;
-          document.querySelector(".playingPane").classList.add("favored");
-        }
-      });
+      if (state.playlists[0]) {
+        state.playlists[0].tracks.forEach((track, index) => {
+          if (track.path == state.playingTrack.path) {
+            state.indexInFavorites = index;
+            document.querySelector(".playingPane").classList.add("favored");
+          }
+        });
+      }
     },
     addToRecents: (state, track) => {
-      let recents = JSON.parse(localStorage.getItem("recentlyPlayed"));
-      if (!recents) {
-        recents = [];
+      state.recentsTracks.unshift(track);
+      state.recentsTracks = removeDuplicates(state.recentsTracks, "path");
+      if (state.recentsTracks.length > 15) {
+        state.recentsTracks.pop();
       }
-      recents.unshift(track);
-      recents = removeDuplicates(recents, "path");
-      if (recents.length > 15) {
-        const spliced = recents.pop();
-      }
-      state.recentsTracks = recents;
-      localStorage.setItem("recentlyPlayed", JSON.stringify(recents));
+      localStorage.setItem(
+        "recentlyPlayed",
+        JSON.stringify(
+          state.recentsTracks.map((recentTrack) =>
+            recentTrack.path.replace("file://", "")
+          )
+        )
+      );
+    },
+    loadRecents: (state, track) => {
+      state.recentsTracks.push(track);
     },
     populateByArtistGroup: (state) => {
       const groupMap = groupBy(state.addedTracks, (track) => track.artist);
@@ -98,7 +105,20 @@ export default new Vuex.Store({
           );
         }
       });
-      localStorage.setItem("playlists", JSON.stringify(state.playlists));
+
+      const playlistsData = [];
+      state.playlists.forEach((playlist) => {
+        const playlistItem = {
+          name: playlist.name,
+          tracks: [],
+        };
+        playlist.tracks.forEach((track) => {
+          console.log(track);
+          playlistItem.tracks.unshift(track.path.replace("file://", ""));
+        });
+        playlistsData.push(playlistItem);
+      });
+      localStorage.setItem("playlists", JSON.stringify(playlistsData));
     },
     removeSelectedTrackToPlaylist: (state, [playlistName, trackIndex]) => {
       state.playlists.forEach((playlist, playlistIndex) => {
@@ -113,20 +133,27 @@ export default new Vuex.Store({
           }
         }
       });
-
-      localStorage.setItem("playlists", JSON.stringify(state.playlists));
+      const playlistsData = [];
+      state.playlists.forEach((playlist) => {
+        const playlistItem = {
+          name: playlist.name,
+          tracks: [],
+        };
+        playlist.tracks.forEach((track) => {
+          console.log(track);
+          playlistItem.tracks.unshift(track.path.replace("file://", ""));
+        });
+        playlistsData.push(playlistItem);
+      });
+      localStorage.setItem("playlists", JSON.stringify(playlistsData));
     },
-    readRecentsFromDB: (state) => {
-      const recentsTracks = JSON.parse(localStorage.getItem("recentlyPlayed"));
-      if (recentsTracks) {
-        state.recentsTracks = recentsTracks;
-      }
-    },
-    readPlaylistsFromDB: (state) => {
-      const playlists = JSON.parse(localStorage.getItem("playlists"));
-      if (playlists) {
-        state.playlists = playlists;
-      }
+    addPlaylist: (state, newPlaylist) => {
+      state.playlists.forEach((playlist, index) => {
+        if (playlist.name == newPlaylist.name) {
+          state.playlists.splice(index, 1);
+        }
+      });
+      state.playlists.unshift(newPlaylist);
     },
     updateTrack: (state, path) => {},
   },
@@ -149,7 +176,6 @@ export default new Vuex.Store({
         const nextTrack = document.querySelector(".playingtrack").nextSibling;
         if (nextTrack) {
           nextTrack.click();
-          document.querySelector(".addedTracksTab").scrollBy(0, 91);
         } else {
           document.querySelector(".TrackCard").click();
         }

@@ -1,13 +1,31 @@
 <template>
   <div class="playingPane animated faster">
+    <div class="trackTags">
+      <img id="coverArtTag" :src="playingTrack.cover" alt="" />
+      <h4 id="selectCoverArt">Select Cover Art</h4>
+      <div>
+        <h4>Name</h4>
+        <p id="titleTag" contenteditable>
+          {{ playingTrack.title }}
+        </p>
+      </div>
+      <div v-if="playingTrack.artist">
+        <h4>Artist</h4>
+        <p contenteditable id="artistTag">{{ playingTrack.artist }}</p>
+      </div>
+      <div>
+        <h4>Album</h4>
+        <p contenteditable id="albumTag">{{ playingTrack.album }}</p>
+      </div>
+    </div>
     <img :src="playingTrack.cover" alt="" id="blurred" />
     <img id="cover" :src="playingTrack.cover" alt="" />
     <div class="songInfo">
       <p id="songName">{{ playingTrack.title }}</p>
-      <p>
+      <p v-if="playingTrack.artist">
         Artist : <span id="artistName">{{ playingTrack.artist }}</span>
       </p>
-      <p>
+      <p v-if="playingTrack.album">
         Album : <span id="albumName">{{ playingTrack.album }}</span>
       </p>
     </div>
@@ -15,7 +33,7 @@
       <p @click="saveChanges" id="saveChanges">Save Changes</p>
       <p @click="exitEditMode" id="exitEditMode">Exit Edit Mode</p>
     </div>
-    <div class="p_options">
+    <div class="p_options" v-if="playingTrack.title">
       <div @click="showPlaylistAdder" class="iconBt">
         <img
           width="27px"
@@ -28,7 +46,7 @@
         <img width="18px" src="@/assets/pen.svg" alt="" />
       </div>
     </div>
-    <div class="controls">
+    <div v-if="playingTrack.title" class="controls">
       <div @click="playPrev" class="iconBt">
         <img width="15px" src="@/assets/prev.png" alt="" />
       </div>
@@ -82,35 +100,25 @@ export default {
     },
     enterEditMode() {
       document.querySelector(".playingPane").classList.add("editMode");
-      this.elements.forEach((element) => {
-        document
-          .querySelector(`#${element}`)
-          .setAttribute("contenteditable", "true");
-        document.querySelector(`#${element}`).classList.add("bordered");
-      });
-      document.querySelector("#songName").focus();
+      document.querySelector("#titleTag").focus();
     },
     exitEditMode() {
       document.querySelector(".playingPane").classList.remove("editMode");
-      this.elements.forEach((element) => {
-        document
-          .querySelector(`#${element}`)
-          .removeAttribute("contenteditable");
-        document.querySelector(`#${element}`).classList.remove("bordered");
-      });
     },
     saveChanges() {
-      const title = document.querySelector("#songName").textContent;
-      const artist = document.querySelector("#artistName").textContent;
-      const album = document.querySelector("#albumName").textContent;
-      console.log(title, artist, album);
+      const title = document.querySelector("#titleTag").textContent;
+      const artist = document.querySelector("#artistTag").textContent;
+      const album = document.querySelector("#albumTag").textContent;
+      const coverArt = document.querySelector(".coverArtTag").src;
+      console.log(title, artist, album, coverArt);
       const data = {
         path: this.playingTrack.path.replace("file://", ""),
         title,
         artist,
         album,
+        coverArt,
       };
-      electron.ipcRenderer.send("updateTrackInfo", data);
+      // electron.ipcRenderer.send("updateTrackInfo", data);
       this.exitEditMode();
     },
     toggleFromFavourites() {
@@ -135,8 +143,6 @@ export default {
           color: "success",
           position: "top-center",
           title: "Added to Favourites",
-          duratiom: 10000,
-          progress: "auto",
           text: `${this.playingTrack.title} added to Favourites`,
         });
         document.querySelector(".playingPane").classList.add("favored");
@@ -150,6 +156,7 @@ export default {
         position: "top-center",
         title: "Song info succesfully changed",
       });
+      // this.updateSongInfo()
     });
     electron.ipcRenderer.on("tagWriteError", () => {
       const noti = this.$vs.notify({
@@ -159,7 +166,6 @@ export default {
       });
     });
     window.addEventListener("keyup", (e) => {
-      console.dir(e);
       if (e.key === "ArrowRight") {
       }
     });
@@ -182,8 +188,9 @@ export default {
   .controls {
     transform: scale(0) !important;
   }
-  .editModeBtns {
-    transform: translateX(-50%) scale(1);
+  .editModeBtns,
+  .trackTags {
+    transform: translateY(0%);
   }
 }
 .playingPane {
@@ -271,12 +278,52 @@ export default {
     padding-top: 5px;
   }
 }
+.trackTags {
+  background: black;
+  position: absolute;
+  top: 0;
+  width: 100%;
+  z-index: 10;
+  color: white;
+  transform: translateY(-100%);
+  transition: 0.2s ease;
+  #selectCoverArt {
+    position: relative;
+    z-index: 5;
+    text-align: center;
+    transform: translateY(-150%) translateX(-50%);
+    width: 50%;
+    left: 50%;
+    padding: 5px;
+    border-radius: 10px;
+    background: rgba(12, 12, 12, 0.863);
+    cursor: pointer;
+    transition: 0.2s ease;
+  }
+  #selectCoverArt:hover {
+    border-radius: 20px;
+    background: #0062ff;
+  }
+  #coverArtTag {
+    width: 85%;
+    margin-left: 20px;
+  }
+  div {
+    padding: 10px;
+    border-bottom: 1px solid gray;
+    p {
+      font-family: roboto-light;
+    }
+  }
+}
 .editModeBtns {
   position: absolute;
-  left: 50%;
-  bottom: 10px;
-  width: 80%;
-  transform: translateX(-50%) scale(0);
+  left: 0%;
+  bottom: 0px;
+  width: 100%;
+  height: 100px;
+  padding: 10px;
+  transform: translateY(100%);
   display: flex;
   flex-direction: column;
   justify-content: space-between;
@@ -284,11 +331,11 @@ export default {
   overflow: hidden;
   transition: 0.2s ease;
   color: white;
+  background: black;
   p {
     padding: 5px;
     width: 100%;
     text-align: center;
-    margin-bottom: 10px;
     border-radius: 10px;
     font-size: 1.2em;
     font-family: roboto;
@@ -299,7 +346,7 @@ export default {
     border-radius: 20px;
   }
   #saveChanges {
-    background: rgba(0, 255, 200, 0.692);
+    background: rgb(0, 68, 255);
   }
   #exitEditMode {
     background: crimson;

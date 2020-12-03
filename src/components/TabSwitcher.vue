@@ -67,7 +67,7 @@ export default {
           }, 200);
           break;
         case "discover":
-          indicator.style.left = "85%";
+          indicator.style.left = "85.8%";
           document.querySelector(".activeTab").classList.remove("activeTab");
           document.querySelector(`#${pos}`).classList.add("activeTab");
           tabsWrapper.style.transform = "translateX(-83.3%)";

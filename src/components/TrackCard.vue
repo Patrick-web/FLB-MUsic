@@ -112,10 +112,17 @@ export default {
       }
       const track = e.currentTarget.parentElement.parentElement;
       track.classList.add("playingNext");
+      const noti = this.$vs.notify({
+        color: "success",
+        position: "top-center",
+        title: "Playing Next",
+        text: `${this.trackInfo.title}`,
+      });
       this.hideOptions(track);
     },
     playTrack(e) {
       document.querySelector("#search").value = "";
+      document.querySelector(".playingPane").classList.remove("editMode");
 
       if (document.querySelector(".playingtrack"))
         document

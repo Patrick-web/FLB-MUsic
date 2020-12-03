@@ -101,14 +101,10 @@ export default {
       transition: 0.2s ease;
     }
     p:hover {
-      padding: 14px;
-      padding-right: 18px;
-      padding-left: 18px;
-      transform: translate(-25px, -110%) scale(0.8);
+      transform: translate(-10px, -110%) scale(0.7);
     }
     input,
     button {
-      border: none;
       font-size: 1.2em;
       color: white;
       transition: 0.2s ease;
@@ -120,19 +116,6 @@ export default {
     }
     input:focus {
       border-bottom: 1px solid #1e74ff;
-    }
-    button {
-      cursor: pointer;
-      border-radius: 20px;
-      background: #ffffff17;
-      padding: 7px;
-      font-family: roboto;
-      margin-top: 10px;
-      width: 100%;
-    }
-    button:hover {
-      border-radius: 10px;
-      background: #0062ff;
     }
   }
   .playlistName {

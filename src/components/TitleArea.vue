@@ -13,7 +13,12 @@
         placeholder="Search for Tracks"
         class="inputElem"
       />
-      <img class="iconLeft magnifier" src="@/assets/search.svg" alt />
+      <img
+        class="iconLeft magnifier"
+        style="pointer-events:none"
+        src="@/assets/search.svg"
+        alt
+      />
       <div @click="clearSearch" class="iconLeft clearer">
         <img src="@/assets/x.svg" alt v-if="query" />
       </div>
