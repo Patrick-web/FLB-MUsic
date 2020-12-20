@@ -17,11 +17,13 @@
     "core-js": "^3.6.5",
     "ffbinaries": "^1.1.4",
     "fluent-ffmpeg": "^2.1.2",
+    "g-i-s": "^2.1.6",
     "localforage": "^1.9.0",
     "loudness": "^0.4.1",
     "material-icons": "^0.2.3",
     "move-file": "^2.0.0",
     "music-metadata": "^7.5.0",
+    "node-downloader-helper": "^1.0.15",
     "node-id3": "^0.2.1",
     "node-openvpn": "^0.1.1",
     "sass": "^1.29.0",
@@ -29,7 +31,8 @@
     "uuidv4": "^6.2.5",
     "vue": "^2.6.11",
     "vuesax": "^3.4.7",
-    "vuex": "^3.4.0"
+    "vuex": "^3.4.0",
+    "wave-visualizer": "^1.0.6"
   },
   "devDependencies": {
     "@vue/cli-plugin-babel": "~4.5.0",

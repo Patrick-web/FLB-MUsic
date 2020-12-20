@@ -27,7 +27,8 @@ export default new Vuex.Store({
       length: "",
     },
     indexInFavorites: null,
-    autoplay: true,
+    repeat: false,
+    shuffle: false,
     isPlaying: false,
   },
   mutations: {
@@ -43,10 +44,27 @@ export default new Vuex.Store({
     },
     toggleIsPlaying: (state) => (state.isPlaying = !state.isPlaying),
     toggleAutoplay: (state) => (state.autoplay = !state.autoplay),
-    addToQueue: (state, element) => {
-      state.queue.push(element);
+    addToQueue: (state, track) => {
+      state.queue.push(track);
+    },
+    removeFromQueue(state, index) {
+      console.log(index);
+      state.queue.splice(index, 1);
     },
     addTrack: (state, track) => state.addedTracks.unshift(track),
+    sortTracks: (state, param) => {
+      function compare(a, b) {
+        if (a[`${param}`] < b[`${param}`]) {
+          return -1;
+        }
+        if (a[`${param}`] > b[`${param}`]) {
+          return 1;
+        }
+        return 0;
+      }
+      state.addedTracks.sort(compare);
+    },
+    reverseAddedTracksArray: (state) => state.addedTracks.reverse(),
     setPlayingTrack: (state, track) => {
       state.playingTrack = track;
       state.isPlaying = true;
@@ -60,20 +78,27 @@ export default new Vuex.Store({
         });
       }
     },
+    setRepeat: (state) => (state.repeat = !state.repeat),
+    toggleShuffler: (state) => {
+      console.log(state.shuffle);
+      state.shuffle = !state.shuffle;
+    },
     addToRecents: (state, track) => {
-      state.recentsTracks.unshift(track);
-      state.recentsTracks = removeDuplicates(state.recentsTracks, "path");
-      if (state.recentsTracks.length > 15) {
-        state.recentsTracks.pop();
-      }
-      localStorage.setItem(
-        "recentlyPlayed",
-        JSON.stringify(
-          state.recentsTracks.map((recentTrack) =>
-            recentTrack.path.replace("file://", "")
+      if (state.currentTab !== "recentsTracks") {
+        state.recentsTracks.unshift(track);
+        state.recentsTracks = removeDuplicates(state.recentsTracks, "path");
+        if (state.recentsTracks.length > 15) {
+          state.recentsTracks.pop();
+        }
+        localStorage.setItem(
+          "recentlyPlayed",
+          JSON.stringify(
+            state.recentsTracks.map((recentTrack) =>
+              recentTrack.path.replace("file://", "")
+            )
           )
-        )
-      );
+        );
+      }
     },
     loadRecents: (state, track) => {
       state.recentsTracks.push(track);
@@ -171,18 +196,23 @@ export default new Vuex.Store({
   },
   actions: {
     determineNextTrack(state) {
+      if (state.state.repeat) return;
+      if (state.state.shuffle) {
+        selectRandomTrack();
+        return;
+      }
       const nextToPlay = document.querySelector(".playingNext");
-      if (!nextToPlay && state.currentTab != "recentTracks") {
+      if (nextToPlay && state.currentTab != "recentTracks") {
+        nextToPlay.click();
+        nextToPlay.classList.remove("playingNext");
+        nextToPlay.scrollIntoView();
+      } else {
         const nextTrack = document.querySelector(".playingtrack").nextSibling;
         if (nextTrack) {
           nextTrack.click();
         } else {
           document.querySelector(".TrackCard").click();
         }
-      } else {
-        nextToPlay.click();
-        nextToPlay.classList.remove("playingNext");
-        nextToPlay.scrollIntoView();
       }
     },
   },
@@ -206,4 +236,38 @@ function groupBy(list, keyGetter) {
     }
   });
   return map;
+}
+
+function shuffle(array) {
+  var currentIndex = array.length,
+    temporaryValue,
+    randomIndex;
+
+  // While there remain elements to shuffle...
+  while (0 !== currentIndex) {
+    // Pick a remaining element...
+    randomIndex = Math.floor(Math.random() * currentIndex);
+    currentIndex -= 1;
+
+    // And swap it with the current element.
+    temporaryValue = array[currentIndex];
+    array[currentIndex] = array[randomIndex];
+    array[randomIndex] = temporaryValue;
+  }
+
+  return array;
+}
+function getRandom(max) {
+  return Math.floor(Math.random() * max);
+}
+function selectRandomTrack() {
+  const parent = document.querySelector(".playingtrack").parentElement
+    .parentElement;
+  console.log(parent);
+  const candidateTracks = document
+    .querySelector(".playingtrack")
+    .parentElement.parentElement.querySelectorAll(".TrackCard");
+  const selectedTrack = candidateTracks[getRandom(candidateTracks.length)];
+  selectedTrack.click();
+  selectedTrack.scrollIntoView();
 }

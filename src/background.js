@@ -1,20 +1,25 @@
 "use strict";
 
 import { app, protocol, BrowserWindow, dialog, ipcMain } from "electron";
+import { resolve } from "path";
 import { createProtocol } from "vue-cli-plugin-electron-builder/lib";
-import * as defaultImage from "./Defaults.js";
-// import installExtension, { VUEJS_DEVTOOLS } from "electron-devtools-installer";
 const NodeID3 = require("node-id3");
-const ID3Writer = require("browser-id3-writer");
 const isDevelopment = process.env.NODE_ENV !== "production";
 const FS = require("fs");
 const PATH = require("path");
 const MUSICFOLDER = require("path").join(require("os").homedir(), "Music");
+const APPDATAFOLDER = app.getPath("userData");
 const mm = require("music-metadata");
-let openedWithFile;
+const { DownloaderHelper } = require("node-downloader-helper");
+const ffbinaries = require("ffbinaries");
+
+let FILESINARGS;
+
+const defaultThumbnail = PATH.join(__static, "Thumbnail.png");
+
 console.log(process.argv);
 if (process.argv[1]) {
-  openedWithFile = process.argv[1];
+  FILESINARGS = process.argv[1];
 }
 app.whenReady().then(() => {
   protocol.registerFileProtocol("file", (request, callback) => {
@@ -22,6 +27,11 @@ app.whenReady().then(() => {
     callback(pathname);
   });
 });
+
+const gotTheLock = app.requestSingleInstanceLock();
+if (!gotTheLock) {
+  app.quit();
+}
 
 protocol.registerSchemesAsPrivileged([
   { scheme: "app", privileges: { secure: true, standard: true } },
@@ -43,7 +53,6 @@ async function createWindow() {
     title: "FLB Music",
   });
   win.maximize();
-  // loadMusicFromMusicFolder();
 
   if (process.env.WEBPACK_DEV_SERVER_URL) {
     // Load the url of the dev server if in development mode
@@ -86,6 +95,13 @@ app.on("ready", async () => {
   createWindow();
 });
 
+console.log(__static);
+FS.readdir(__static, (err, files) => {
+  files.forEach(async (fileName) => {
+    console.log(fileName);
+  });
+});
+
 // Exit cleanly on request from parent process in development mode.
 if (isDevelopment) {
   if (process.platform === "win32") {
@@ -101,27 +117,87 @@ if (isDevelopment) {
   }
 }
 
+async function getCoverArtUrl(coverArt) {
+  /*
+  @param coverArt
+  data URI from parse audio file
+  defualt Thumbnail.png
+  link from google images
+  */
+  const stringForm = JSON.stringify(coverArt);
+  console.log(stringForm.includes("https:"));
+  //Checks if is from  google images
+  if (stringForm.includes("https:")) {
+    let downloadedCover;
+    await new Promise((resolve) => {
+      const dl = new DownloaderHelper(coverArt, APPDATAFOLDER);
+      dl.start();
+      dl.on("end", () => {
+        console.log("downloadSuccesful");
+        resolve((downloadedCover = dl.getDownloadPath()));
+      });
+    });
+    return downloadedCover;
+  }
+
+  //Checks if it uses the default coverArt
+  if (stringForm.includes("Thumbnail.png")) return defaultThumbnail;
+
+  //Checks is its a dataURI String
+  if (stringForm.includes("data:image")) {
+    let builtCover;
+    await new Promise((resolve) => {
+      let coverPath;
+      let base64ContentArray = coverArt.split(",");
+      let mimeType = base64ContentArray[0].match(
+        /[^:\s*]\w+\/[\w-+\d.]+(?=[;| ])/
+      )[0];
+      let base64Data = base64ContentArray[1];
+      coverPath = PATH.join(
+        MUSICFOLDER,
+        `cover.${mimeType.replace("image/", "")}`
+      );
+      require("fs").writeFile(coverPath, base64Data, "base64", (err) => {
+        if (err) {
+          console.log("error in writing data URI to fs");
+        } else {
+          resolve((builtCover = coverPath));
+        }
+      });
+    });
+    console.log("Written cover path is " + builtCover);
+    return builtCover;
+  }
+}
+
 ipcMain.on("updateTrackInfo", async (e, data) => {
+  const coverPath = await getCoverArtUrl(data.coverArt);
+  console.log("Cover is at" + coverPath);
   const tags = {
     title: data.title,
     artist: data.artist,
     album: data.album,
-    APIC: `src/art3.jpg`,
+    APIC: coverPath,
   };
-  require("fs").writeFile("coverArt.png", data.base64Data, "base64", function(
-    err
-  ) {
-    console.log(err);
-  });
   let file = data.path;
   let success = NodeID3.write(tags, file);
-  console.log(success);
+  console.log("Tag write is " + success);
   if (success) {
-    win.webContents.send("tagWriteSuccessful");
     const folder = file.match(/(.*)[\/\\]/)[1] || "";
-    const newFileName =
-      PATH.join(folder, data.title) + `.${data.path.split(".").pop()}`;
-    FS.rename(data.path, newFileName, () => console.log("rename successful"));
+    const mimeType = `.${data.path.split(".").pop()}`;
+    const newFileName = data.title + mimeType;
+    let newFilePath = PATH.join(folder, newFileName);
+    newFilePath = newFilePath.replace(/\s\./g, ".");
+    var isWin = process.platform === "win32";
+    let slash = "/";
+    if (isWin) slash = "\\";
+    newFilePath = newFilePath.replace(/\/\s/g, slash);
+    FS.rename(data.path, newFilePath, () => console.log("rename successful"));
+    console.log("New File is located at " + newFilePath);
+    parseAudioFile(newFilePath, "audioWithCover", false);
+    win.webContents.send("tagWriteSuccessful");
+    win.webContents.send("newFilePath");
+    console.log("==================================");
   } else {
     win.webContents.send("tagWriteError");
   }
@@ -202,9 +278,16 @@ ipcMain.on("addMusicFromFolder", async () => {
 
 ipcMain.on("processDroppedFiles", (e, filePaths) => {
   if (Array.isArray(filePaths)) {
-    filePaths.forEach((pathToFile) => {
-      parseAudioFile(pathToFile, "audioWithCover", false);
-    });
+    if (FS.lstatSync(filePaths[0]).isDirectory()) {
+      loadFromAFolder(filePaths[0]);
+    } else {
+      filePaths.forEach((pathToFile) => {
+        parseAudioFile(pathToFile, "audioWithCover", false);
+      });
+      setTimeout(() => {
+        win.webContents.send("playNow");
+      }, 1000);
+    }
   }
 });
 
@@ -222,14 +305,19 @@ function loadFromAFolder(folderPath) {
       }
     });
   });
+  setTimeout(() => {
+    win.webContents.send("playNow");
+  }, 1000);
 }
 ipcMain.on("loadArguments", (e) => {
-  if (FS.lstatSync(openedWithFile).isDirectory()) {
-    loadFromAFolder(openedWithFile);
+  if (FS.lstatSync(FILESINARGS).isDirectory()) {
+    loadFromAFolder(FILESINARGS);
     win.webContents.send("playNow");
   } else {
-    parseAudioFile(openedWithFile, "audioWithCover", false);
-    win.webContents.send("playNow");
+    parseAudioFile(FILESINARGS, "audioWithCover", false);
+    setTimeout(() => {
+      win.webContents.send("playNow");
+    }, 100);
   }
 });
 
@@ -250,7 +338,7 @@ async function parseAudioFile(
           "base64"
         )}`;
       } else {
-        cover = `data:image/png;base64,${defaultImage.default}`;
+        cover = "file://" + defaultThumbnail;
       }
       const audioWithCover = {
         title: fileName
@@ -272,6 +360,8 @@ async function parseAudioFile(
       }
     })
     .catch((err) => {
+      console.log("Error in parsing file =>" + pathToFile);
+
       console.log(err);
     });
   return dataToSendBack;
@@ -320,3 +410,20 @@ function secondsToTime(sec) {
   }
   return "_ _ : _ _";
 }
+
+function getBinaries() {
+  console.log("=============");
+  var platform = ffbinaries.detectPlatform();
+
+  return ffbinaries.downloadFiles(
+    ["ffmpeg", "ffprobe"],
+    { platform: platform, quiet: true, destination: APPDATAFOLDER },
+    function(err, data) {
+      console.log("Downloading binaries for " + platform + ":");
+      console.log("err", err);
+      console.log("The data from downloading bins is ", data);
+    }
+  );
+}
+
+getBinaries();

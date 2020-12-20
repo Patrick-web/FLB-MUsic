@@ -42,6 +42,7 @@
 
 <script>
 import { mapGetters, mapMutations, mapActions } from "vuex";
+import Wave from "wave-visualizer";
 
 export default {
   computed: {
@@ -68,9 +69,17 @@ export default {
     },
     play() {
       document.querySelector("audio").play();
+      const wave = new Wave();
+      wave.fromElement("audioTag", "visualizerArea", {
+        colors: ["white"],
+      });
     },
     pause() {
       document.querySelector("audio").pause();
+      const wave = new Wave();
+      wave.fromElement("audioTag", "visualizerArea", {
+        colors: ["white"],
+      });
     },
     seekBack() {
       const audio = document.querySelector("#audioTag");
@@ -129,23 +138,10 @@ export default {
       const percent = Math.floor((audio.currentTime / audio.duration) * 100);
       seekProgress.style.height = `${percent}%`;
 
-      if (audio.currentTime == audio.duration && this.autoplay) {
+      if (audio.currentTime == audio.duration) {
         this.determineNextTrack();
       }
     }, 1000);
-    // setInterval(() => {
-    //   if (audio.currentTime == 0) {
-    //     if (document.querySelector(".playingtrack")) {
-    //       const target = document.querySelector(".playingtrack");
-    //       target.classList.add("brockentrack");
-    //       // target.nextSibling.click();
-    //       document
-    //         .querySelector(".playingtrack")
-    //         .classList.remove("playingtrack");
-    //       _this.notify("Error", "This audio file is brocken");
-    //     }
-    //   }
-    // }, 10000);
     progressBar.addEventListener("mousemove", (e) => {
       const posY = e.clientY - progressBar.getBoundingClientRect().y;
       progressInfoCard.style.top = `${posY - 30}px`;
@@ -178,7 +174,7 @@ export default {
 <style lang="scss">
 .TrackBar {
   position: absolute;
-  z-index: 5;
+  z-index: 25;
   left: 0px;
   transform: translateX(-100%);
   height: 100vh;

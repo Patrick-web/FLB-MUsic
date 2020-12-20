@@ -1,8 +1,19 @@
 <template>
-  <div @contextmenu="showOptions($event)" @click="playTrack" class="TrackCard">
+  <div
+    @contextmenu="showOptions($event)"
+    @click="playTrack"
+    :id="trackIndex"
+    class="TrackCard"
+  >
     <img
       @click.stop="removeFromPlaylist($event)"
       class="delIcon"
+      src="@/assets/trash-bin-outline.svg"
+      alt=""
+    />
+    <img
+      @click.stop="removeFromQueue(trackIndex)"
+      class="unQueueIcon"
       src="@/assets/trash-bin-outline.svg"
       alt=""
     />
@@ -72,6 +83,7 @@ export default {
       "selectATrack",
       "addSelectedTrackToPlaylist",
       "removeSelectedTrackToPlaylist",
+      "removeFromQueue",
     ]),
     showOptions(e) {
       e.preventDefault();
@@ -84,7 +96,7 @@ export default {
       document.querySelector(".PlaylistAdder").classList.add("show");
     },
     removeFromPlaylist(e) {
-      const playlistName = e.target.parentElement.parentElement.parentElement.querySelector(
+      const playlistName = e.target.parentElement.parentElement.parentElement.parentElement.querySelector(
         ".titleArea"
       ).textContent;
       console.log(playlistName);
@@ -134,28 +146,16 @@ export default {
       this.addToRecents(this.trackInfo);
     },
     queueTrack(e) {
+      document.querySelector(".queueTabIcon").click();
       const track = e.currentTarget.parentElement.parentElement;
-      if (!track.classList.contains("queued")) {
-        if (this.queuedTracks.length == 0) {
-          setTimeout(() => {
-            const n1 = this.$vs.notify({
-              position: "top-center",
-              duration: 10000,
-              progress: "auto",
-              title: "Note",
-              text: "Now Playing Tracks from the Queue",
-            });
-          }, 2000);
-        }
-        this.addToQueue(track);
-        const n2 = this.$vs.notify({
-          color: "success",
-          position: "top-center",
-          title: "Done",
-          text: `Added ${this.title} to Queue`,
-        });
-        track.classList.add("queued");
-      }
+      this.addToQueue(this.trackInfo);
+      const n2 = this.$vs.notify({
+        color: "success",
+        position: "top-center",
+        title: "Added to Queue",
+        text: `${this.title}`,
+      });
+      track.classList.add("queued");
       this.hideOptions(track);
     },
     hideOptions(currentElement) {
@@ -303,6 +303,20 @@ export default {
   }
   .delIcon:hover {
     transform: translateX(50%) translateY(-50%) scale(1.2) !important;
+  }
+  .unQueueIcon {
+    position: absolute;
+    top: 50%;
+    right: 0;
+    background: crimson;
+    width: 30px;
+    padding: 5px;
+    transform-origin: center;
+    transform: translateX(50%) translateY(-50%) scale(0);
+    border-radius: 50%;
+    transition: 0.4s ease;
+    cursor: pointer;
+    z-index: 4;
   }
 }
 .TrackCard:hover {

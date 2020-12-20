@@ -17,6 +17,8 @@
 
 * {
   user-select: none;
+  color: white;
+  transition: 0.2s ease;
 }
 
 button {
@@ -33,4 +35,7 @@ button {
 button:hover {
   border-radius: 10px;
   background: #0062ff;
+}
+.vs-notifications {
+  text-align: center !important;
 }

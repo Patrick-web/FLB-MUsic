@@ -8,20 +8,35 @@
     <div class="centralArea">
       <TitleArea />
       <TabSwitcher />
-      <br />
-      <br />
       <div class="tabsWrapper">
         <div class="tab addedTracksTab">
-          <TrackCard
-            :cover="track.cover"
-            :album="track.album"
-            :title="track.title"
-            :artist="track.artist"
-            :length="track.formatedLength"
-            :path="track.path"
-            v-for="track in addedTracks"
-            :key="track.path"
-          />
+          <div v-if="addedTracks.length > 1" class="trackActions">
+            <div>
+              <p>Edit Mode</p>
+              <img style="max-width:18px" src="@/assets/pen.svg" alt="" />
+            </div>
+            <SortWidget />
+          </div>
+          <br />
+          <br />
+          <br />
+          <br />
+          <transition-group
+            enter-active-class="animated slideInLeft faster"
+            leave-active-class="animated slideOutRight faster"
+          >
+            <TrackCard
+              :cover="track.cover"
+              :album="track.album"
+              :title="track.title"
+              :artist="track.artist"
+              :length="track.formatedLength"
+              :path="track.path"
+              :trackIndex="index"
+              v-for="(track, index) in addedTracks"
+              :key="track.path"
+            />
+          </transition-group>
         </div>
         <div class="tab playlistsTab disable__options">
           <div
@@ -34,31 +49,42 @@
               <img class="expandIcon" src="@/assets/arrowDown.svg" alt="" />
             </div>
             <div class="body">
-              <TrackCard
-                :cover="track.cover"
-                :album="track.album"
-                :title="track.title"
-                :artist="track.artist"
-                :length="track.formatedLength"
-                :path="track.path"
-                :trackIndex="index"
-                v-for="(track, index) in playlist.tracks"
-                :key="track.path"
-              />
+              <transition-group
+                enter-active-class="animated slideInLeft faster"
+                leave-active-class="animated slideOutRight faster"
+              >
+                <TrackCard
+                  :cover="track.cover"
+                  :album="track.album"
+                  :title="track.title"
+                  :artist="track.artist"
+                  :length="track.formatedLength"
+                  :path="track.path"
+                  :trackIndex="index"
+                  v-for="(track, index) in playlist.tracks"
+                  :key="track.path"
+                />
+              </transition-group>
             </div>
           </div>
         </div>
         <div class="tab recentsTab">
-          <TrackCard
-            :cover="track.cover"
-            :album="track.album"
-            :title="track.title"
-            :artist="track.artist"
-            :length="track.formatedLength"
-            :path="track.path"
-            v-for="track in recentsTracks"
-            :key="track.path"
-          />
+          <transition-group
+            enter-active-class="animated slideInLeft faster"
+            leave-active-class="animated slideOutRight faster"
+          >
+            <TrackCard
+              :cover="track.cover"
+              :album="track.album"
+              :title="track.title"
+              :artist="track.artist"
+              :length="track.formatedLength"
+              :trackIndex="index"
+              :path="track.path"
+              v-for="(track, index) in recentsTracks"
+              :key="track.path"
+            />
+          </transition-group>
         </div>
         <div class="tab albumsTab">
           <div
@@ -71,16 +97,22 @@
               <img class="expandIcon" src="@/assets/arrowDown.svg" alt="" />
             </div>
             <div class="body">
-              <TrackCard
-                :cover="track.cover"
-                :album="track.album"
-                :title="track.title"
-                :artist="track.artist"
-                :length="track.formatedLength"
-                :path="track.path"
-                v-for="track in group[1]"
-                :key="track.path"
-              />
+              <transition-group
+                enter-active-class="animated slideInLeft faster"
+                leave-active-class="animated slideOutRight faster"
+              >
+                <TrackCard
+                  :cover="track.cover"
+                  :album="track.album"
+                  :title="track.title"
+                  :artist="track.artist"
+                  :length="track.formatedLength"
+                  :path="track.path"
+                  :trackIndex="index"
+                  v-for="(track, index) in group[1]"
+                  :key="track.path"
+                />
+              </transition-group>
             </div>
           </div>
         </div>
@@ -95,16 +127,22 @@
               <img class="expandIcon" src="@/assets/arrowDown.svg" alt="" />
             </div>
             <div class="body">
-              <TrackCard
-                :cover="track.cover"
-                :album="track.album"
-                :title="track.title"
-                :artist="track.artist"
-                :length="track.formatedLength"
-                :path="track.path"
-                v-for="track in group[1]"
-                :key="track.path"
-              />
+              <transition-group
+                enter-active-class="animated slideInLeft faster"
+                leave-active-class="animated slideOutRight faster"
+              >
+                <TrackCard
+                  :cover="track.cover"
+                  :album="track.album"
+                  :title="track.title"
+                  :artist="track.artist"
+                  :length="track.formatedLength"
+                  :path="track.path"
+                  :trackIndex="index"
+                  v-for="(track, index) in group[1]"
+                  :key="track.path"
+                />
+              </transition-group>
             </div>
           </div>
         </div>
@@ -112,7 +150,16 @@
       </div>
     </div>
     <div class="playingPaneArea">
+      <div class="tabber">
+        <div @click="hideQueue($event)" class="activeTab playingTabIcon">
+          <img src="@/assets/music_note.svg" alt="" />
+        </div>
+        <div @click="showQueue($event)" class="queueTabIcon">
+          <img src="@/assets/queue_music.png" alt="" />
+        </div>
+      </div>
       <PlayingPane />
+      <QueuedTracks />
     </div>
   </div>
 </template>
@@ -126,13 +173,12 @@ import PlayingPane from "@/components/PlayingPane.vue";
 import TrackCard from "@/components/TrackCard.vue";
 import PlaylistAdder from "@/components/PlaylistAdder.vue";
 import { mapMutations, mapGetters } from "vuex";
+import SortWidget from "./components/SortWidget.vue";
+import QueuedTracks from "./components/QueuedTracks.vue";
 const electron = window.require("electron");
 
 export default {
   name: "App",
-  data() {
-    return { playAll: true };
-  },
   components: {
     TabSwitcher,
     TitleArea,
@@ -141,10 +187,12 @@ export default {
     PlayingPane,
     TrackCard,
     PlaylistAdder,
+    SortWidget,
+    QueuedTracks,
   },
   computed: {
     ...mapGetters([
-      "autoplay",
+      "playingTrack",
       "addedTracks",
       "recentsTracks",
       "tracksGroupedByArtist",
@@ -159,6 +207,16 @@ export default {
       "addPlaylist",
       "loadRecents",
     ]),
+    loadRecentsAndPlaylists() {
+      const playlists = JSON.parse(localStorage.getItem("playlists"));
+      if (playlists) {
+        electron.ipcRenderer.send("parsePlaylist", playlists);
+      }
+      const recents = JSON.parse(localStorage.getItem("recentlyPlayed"));
+      if (recents) {
+        electron.ipcRenderer.send("parseRecentlyPlayed", recents);
+      }
+    },
     toggleExpansion(e) {
       const panel = e.target.parentElement;
       if (!panel.classList.contains("expanded")) {
@@ -175,13 +233,50 @@ export default {
         document.querySelector(".showOptions").classList.remove("showOptions");
       }
     },
+    showQueue(e) {
+      document
+        .querySelector(".playingPaneArea .activeTab")
+        .classList.remove("activeTab");
+      e.currentTarget.classList.add("activeTab");
+      document.querySelector(".playingPaneArea").classList.add("showQueue");
+      document.querySelector(".QueuedTracks").classList.add("slideInRight");
+      setTimeout(() => {
+        this.removeAnimationClasses();
+      }, 300);
+    },
+    hideQueue(e) {
+      document
+        .querySelector(".playingPaneArea .activeTab")
+        .classList.remove("activeTab");
+      e.currentTarget.classList.add("activeTab");
+      document
+        .querySelector(".QueuedTracks")
+        .classList.replace("slideInRight", "slideOutRight");
+      setTimeout(() => {
+        document
+          .querySelector(".playingPaneArea")
+          .classList.remove("showQueue");
+        this.removeAnimationClasses();
+      }, 300);
+    },
+    removeAnimationClasses() {
+      setTimeout(() => {
+        document
+          .querySelector(".QueuedTracks")
+          .classList.remove("slineInRight", "slideOutRight");
+      }, 500);
+    },
   },
   mounted() {
+    const thumbnail = require("./assets/Thumbnail.png");
+    console.log(thumbnail);
     electron.ipcRenderer.on("playNow", (event, track) => {
-      if (document.querySelector(".TrackCard"))
-        document.querySelector(".TrackCard").click();
+      if (document.querySelector(".addedTracksTab .TrackCard")) {
+        document.querySelector(".addedTracksTab .TrackCard").click();
+      }
     });
     electron.ipcRenderer.on("audioWithCover", (event, track) => {
+      document.querySelector(".addedTracksTab").scrollTo(0, 0);
       this.addTrack(track);
     });
     electron.ipcRenderer.on("addToRecents", (event, track) => {
@@ -190,14 +285,20 @@ export default {
     electron.ipcRenderer.on("addPlaylist", (event, playlists) => {
       this.addPlaylist(playlists);
     });
-    const playlists = JSON.parse(localStorage.getItem("playlists"));
-    if (playlists) {
-      electron.ipcRenderer.send("parsePlaylist", playlists);
-    }
-    const recents = JSON.parse(localStorage.getItem("recentlyPlayed"));
-    if (recents) {
-      electron.ipcRenderer.send("parseRecentlyPlayed", recents);
-    }
+    // this.loadRecentsAndPlaylists();
+    electron.ipcRenderer.on("tagWriteSuccessful", (e) => {
+      const noti = this.$vs.notify({
+        color: "success",
+        position: "top-center",
+        title: "Song info succesfully changed",
+      });
+      this.loadRecentsAndPlaylists();
+      setTimeout(() => {
+        const currentTime = document.querySelector("#audioTag").currentTime;
+        document.querySelector(".addedTracksTab .TrackCard").click();
+        document.querySelector("#audioTag").currentTime = currentTime;
+      }, 1000);
+    });
     electron.ipcRenderer.send("loadArguments");
 
     String.prototype.toHHMMSS = function() {
@@ -224,6 +325,10 @@ export default {
       const filePaths = Array.from(event.dataTransfer.files).map(
         (file) => file.path
       );
+      const noti = this.$vs.notify({
+        position: "top-center",
+        title: "Processing added track(s)",
+      });
       electron.ipcRenderer.send("processDroppedFiles", filePaths);
     });
 
@@ -291,13 +396,106 @@ body {
   padding-left: 40px;
 }
 .tab {
-  padding: 10px;
-  height: 74.5vh;
+  height: 83vh;
   overflow: hidden;
   overflow-y: scroll;
+  padding-top: 40px;
 }
 .addedTracksTab {
-  padding-top: 5px;
+  padding-top: 0px;
+  position: relative;
+  .showHiddenActions {
+    background: #0062ff !important;
+    border-radius: 12px !important;
+    .hiddenActions {
+      display: block !important;
+    }
+  }
+  .trackActions {
+    position: absolute;
+    background: black;
+    top: 0;
+    left: 0;
+    width: 100%;
+    z-index: 10;
+    padding: 10px;
+    padding-right: 15px;
+    padding-left: 15px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    .hiddenActions {
+      display: none;
+      box-shadow: 0px 0px 50px black;
+    }
+    div {
+      background: #141414;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px;
+      border-radius: 40px;
+      cursor: pointer;
+      position: relative;
+      .sortMode {
+        position: absolute;
+        bottom: -140px;
+        left: -10px;
+        background: #141414;
+        padding: 8px;
+        border-radius: 40px;
+        border: 2px solid #0062ff00;
+        p {
+          display: none;
+        }
+        #desc {
+          display: none;
+        }
+        #asc {
+          display: block;
+        }
+      }
+      .byDesc {
+        #desc {
+          display: block !important;
+        }
+        #asc {
+          display: none !important;
+        }
+      }
+      .sortMode:hover {
+        border: 2px solid #0062ff;
+      }
+      .sortParams {
+        bottom: -90px;
+        border-radius: 20px;
+        left: -10px;
+        position: absolute;
+        width: 100px;
+        background: #141414;
+        overflow: hidden;
+        p {
+          padding: 10px;
+        }
+        p:hover {
+          background: #0062ff41;
+        }
+        .selectedParam {
+          background: #0062ff;
+        }
+        .selectedParam:hover {
+          background: #0062ff;
+        }
+      }
+      img {
+        margin-left: 10px;
+        width: 20px;
+      }
+    }
+    div:hover {
+      background: #0062ff;
+    }
+  }
 }
 .expanded {
   .body {
@@ -305,7 +503,7 @@ body {
     padding: 10px;
   }
   .titleArea {
-    box-shadow: 0px 4px 5px rgba(0, 0, 0, 0.555) !important;
+    box-shadow: 0px 8px 5px rgb(0, 0, 0) !important;
     background: #0062ff !important;
     .expandIcon {
       transform: rotate(180deg);
@@ -364,10 +562,35 @@ body {
     background: #0062ff;
   }
 }
-#foo {
-  position: fixed;
-  top: 0;
-  left: 0;
-  z-index: 20;
+.playingPaneArea {
+  position: relative;
+  .tabber {
+    margin: auto;
+    display: flex;
+    align-items: stretch;
+    justify-content: stretch;
+    backdrop-filter: blur(10px);
+    background-color: rgba(70, 70, 70, 0.274);
+    width: 60px;
+    position: absolute;
+    z-index: 21;
+    border-radius: 10px;
+    top: 6px;
+    left: 40%;
+    overflow: hidden;
+    div {
+      padding: 5px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+    }
+    img {
+      width: 20px;
+    }
+    .activeTab {
+      background: #0062ff;
+    }
+  }
 }
 </style>

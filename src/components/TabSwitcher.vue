@@ -55,7 +55,7 @@ export default {
           tabsWrapper.style.transform = "translateX(-50%)";
           setTimeout(() => {
             this.populateByAlbumGroup();
-          }, 200);
+          }, 50);
           break;
         case "artists":
           indicator.style.left = "67.5%";
@@ -64,7 +64,7 @@ export default {
           tabsWrapper.style.transform = "translateX(-66.65%)";
           setTimeout(() => {
             this.populateByArtistGroup();
-          }, 200);
+          }, 50);
           break;
         case "discover":
           indicator.style.left = "85.8%";
@@ -88,6 +88,7 @@ export default {
   grid-template-columns: 1fr 1fr 1fr 1fr 1fr 1fr;
   column-gap: 10px;
   border-radius: 20px;
+  margin-bottom: 10px;
   position: relative;
   p {
     text-align: center;

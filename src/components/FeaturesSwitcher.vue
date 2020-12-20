@@ -75,6 +75,7 @@ export default {
       const optionsBox = document.querySelector(".addOptions");
       optionsBox.classList.toggle("showAddOptions");
       optionsBox.classList.toggle("slideInDown");
+      document.querySelector("#addedTracks").click();
     },
   },
 };
