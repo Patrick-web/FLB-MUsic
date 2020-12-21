@@ -146,7 +146,9 @@
             </div>
           </div>
         </div>
-        <div class="tab genresTab">genresTab</div>
+        <div class="tab discoverTab">
+          <Discover />
+        </div>
       </div>
     </div>
     <div class="playingPaneArea">
@@ -175,6 +177,7 @@ import PlaylistAdder from "@/components/PlaylistAdder.vue";
 import { mapMutations, mapGetters } from "vuex";
 import SortWidget from "./components/SortWidget.vue";
 import QueuedTracks from "./components/QueuedTracks.vue";
+import Discover from "./components/Discover.vue";
 const electron = window.require("electron");
 
 export default {
@@ -189,6 +192,7 @@ export default {
     PlaylistAdder,
     SortWidget,
     QueuedTracks,
+    Discover,
   },
   computed: {
     ...mapGetters([
@@ -285,7 +289,7 @@ export default {
     electron.ipcRenderer.on("addPlaylist", (event, playlists) => {
       this.addPlaylist(playlists);
     });
-    // this.loadRecentsAndPlaylists();
+    this.loadRecentsAndPlaylists();
     electron.ipcRenderer.on("tagWriteSuccessful", (e) => {
       const noti = this.$vs.notify({
         color: "success",

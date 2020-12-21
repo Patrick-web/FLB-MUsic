@@ -1,7 +1,6 @@
 "use strict";
 
 import { app, protocol, BrowserWindow, dialog, ipcMain } from "electron";
-import { resolve } from "path";
 import { createProtocol } from "vue-cli-plugin-electron-builder/lib";
 const NodeID3 = require("node-id3");
 const isDevelopment = process.env.NODE_ENV !== "production";
@@ -9,9 +8,16 @@ const FS = require("fs");
 const PATH = require("path");
 const MUSICFOLDER = require("path").join(require("os").homedir(), "Music");
 const APPDATAFOLDER = app.getPath("userData");
+const ffmpeg = require("fluent-ffmpeg");
 const mm = require("music-metadata");
 const { DownloaderHelper } = require("node-downloader-helper");
 const ffbinaries = require("ffbinaries");
+
+const ffmpegPath = PATH.join(APPDATAFOLDER, "ffmpeg");
+const ffprobePath = PATH.join(APPDATAFOLDER, "ffprobe");
+
+ffmpeg.setFfmpegPath(ffmpegPath);
+ffmpeg.setFfprobePath(ffprobePath);
 
 let FILESINARGS;
 
@@ -192,12 +198,16 @@ ipcMain.on("updateTrackInfo", async (e, data) => {
     let slash = "/";
     if (isWin) slash = "\\";
     newFilePath = newFilePath.replace(/\/\s/g, slash);
-    FS.rename(data.path, newFilePath, () => console.log("rename successful"));
-    console.log("New File is located at " + newFilePath);
-    parseAudioFile(newFilePath, "audioWithCover", false);
-    win.webContents.send("tagWriteSuccessful");
-    win.webContents.send("newFilePath");
-    console.log("==================================");
+    if (mimeType === ".m4a") {
+      newFilePath = await convertToMp3(data.path, newFilePath);
+      console.log(newFilePath);
+    }
+    // FS.rename(data.path, newFilePath, () => console.log("rename successful"));
+    // console.log("New File is located at " + newFilePath);
+    // parseAudioFile(newFilePath, "audioWithCover", false);
+    // win.webContents.send("tagWriteSuccessful");
+    // win.webContents.send("newFilePath");
+    // console.log("==================================");
   } else {
     win.webContents.send("tagWriteError");
   }
@@ -427,3 +437,26 @@ function getBinaries() {
 }
 
 getBinaries();
+async function convertToMp3(source, savePath) {
+  await new Promise((resolve) => {
+    try {
+      ffmpeg(source)
+        .toFormat("mp3")
+        .on("error", (err) => {
+          console.log("Error in converting: " + err.message);
+        })
+        .on("progress", (progress) => {
+          console.log("Processing: " + progress.targetSize + " KB converted");
+        })
+        .on("end", () => {
+          console.log("Processing finished !");
+          resolve();
+        })
+        .save(savePath); //path where you want to save your file
+    } catch (error) {
+      console.log("Error in converting");
+      return merge(false);
+    }
+  });
+  return savePath;
+}
