@@ -33,7 +33,8 @@
     "vue": "^2.6.11",
     "vuesax": "^3.4.7",
     "vuex": "^3.4.0",
-    "wave-visualizer": "^1.0.6"
+    "wave-visualizer": "^1.0.6",
+    "youtube-stream-url": "^2.0.1"
   },
   "devDependencies": {
     "@vue/cli-plugin-babel": "~4.5.0",

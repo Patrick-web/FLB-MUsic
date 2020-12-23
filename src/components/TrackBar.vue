@@ -1,5 +1,5 @@
 <template>
-  <div class="TrackBar">
+  <div v-if="playingTrack.path" class="TrackBar">
     <audio :src="playingTrack.path" id="audioTag" autoplay></audio>
 
     <div @click="seek($event)" class="seekBar">

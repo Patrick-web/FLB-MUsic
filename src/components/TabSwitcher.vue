@@ -7,7 +7,7 @@
     <p id="recentsTracks" @click="moveIndicator('recentsTracks')">Recents</p>
     <p id="albums" @click="moveIndicator('albums')">Albums</p>
     <p id="artists" @click="moveIndicator('artists')">Artists</p>
-    <p id="discover" @click="moveIndicator('discover')">Discover</p>
+    <p id="discover" @click="moveIndicator('discover')">Deezer</p>
     <div class="indicator"></div>
   </div>
 </template>
@@ -26,6 +26,7 @@ export default {
     moveIndicator(pos) {
       const indicator = document.querySelector(".indicator");
       const tabsWrapper = document.querySelector(".tabsWrapper");
+      document.querySelector(".MainGrid").classList.remove("tabIsDiscover");
       switch (pos) {
         case "addedTracks":
           indicator.style.left = "0%";
@@ -67,10 +68,11 @@ export default {
           }, 50);
           break;
         case "discover":
-          indicator.style.left = "85.8%";
+          indicator.style.left = "85.1%";
           document.querySelector(".activeTab").classList.remove("activeTab");
           document.querySelector(`#${pos}`).classList.add("activeTab");
           tabsWrapper.style.transform = "translateX(-83.3%)";
+          document.querySelector(".MainGrid").classList.add("tabIsDiscover");
           break;
 
         default:
@@ -90,6 +92,7 @@ export default {
   border-radius: 20px;
   margin-bottom: 10px;
   position: relative;
+  overflow: hidden;
   p {
     text-align: center;
     position: relative;

@@ -1,5 +1,5 @@
 <template>
-  <div @click="cleanUp" class="Grid">
+  <div @click="cleanUp" class="MainGrid">
     <PlaylistAdder />
 
     <div class="featuresSwitcherArea">
@@ -376,7 +376,7 @@ body {
   background: rgb(255, 255, 255);
   border-radius: 10px;
 }
-.Grid {
+.MainGrid {
   display: grid;
   grid-template-columns: 0.2fr 4fr 1.2fr;
   column-gap: 50px;
@@ -391,7 +391,25 @@ body {
     transition: 0.2s ease-in-out;
   }
 }
-
+.tabIsDiscover {
+  grid-template-columns: 1fr;
+  .Titlebar {
+    height: 0;
+    margin-bottom: 0px;
+    overflow: hidden;
+  }
+  .playingPaneArea,
+  .featuresSwitcherArea {
+    display: none;
+  }
+  .centralArea {
+    min-height: 100vh;
+  }
+  .Tabswitcher {
+    max-width: 600px;
+    margin: auto;
+  }
+}
 .featuresSwitcherArea {
   display: flex;
   align-items: center;
@@ -596,5 +614,9 @@ body {
       background: #0062ff;
     }
   }
+}
+.discoverTab {
+  padding-top: 0px;
+  height: 100vh;
 }
 </style>

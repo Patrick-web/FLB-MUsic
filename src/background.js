@@ -12,6 +12,7 @@ const ffmpeg = require("fluent-ffmpeg");
 const mm = require("music-metadata");
 const { DownloaderHelper } = require("node-downloader-helper");
 const ffbinaries = require("ffbinaries");
+const Youtube = require("youtube-stream-url");
 
 const ffmpegPath = PATH.join(APPDATAFOLDER, "ffmpeg");
 const ffprobePath = PATH.join(APPDATAFOLDER, "ffprobe");
@@ -122,6 +123,24 @@ if (isDevelopment) {
     });
   }
 }
+
+ipcMain.on("getYTStreamURL", (e, YTurl) => {
+  console.log(YTurl);
+  Youtube.getInfo({ url: YTurl }).then((video) => {
+    if (video.formats[0]) {
+      const videoInfo = {
+        title: video.videoDetails.title,
+        length: video.videoDetails.lengthSeconds,
+        thumbnail: video.videoDetails.thumbnail.thumbnails[0].url || null,
+        streamURL: video.formats[0].url || null,
+      };
+      if (videoInfo.thumbnail && videoInfo.streamURL) {
+        console.log(videoInfo);
+        win.webContents.send("YTStreamURL", videoInfo);
+      }
+    }
+  });
+});
 
 async function getCoverArtUrl(coverArt) {
   /*

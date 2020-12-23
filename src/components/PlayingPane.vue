@@ -1,5 +1,5 @@
 <template>
-  <div class="playingPane animated faster">
+  <div v-if="playingtrack.path" class="playingPane animated faster">
     <div class="trackTags animated faster">
       <img id="coverArtTag" :src="playingTrack.cover" alt="" />
       <h4 id="selectCoverArt">Import Cover Art</h4>
@@ -94,6 +94,7 @@ export default {
     return {
       elements: ["songName", "artistName", "albumName"],
       repeat: false,
+      shuffle: false,
       possibleThumbnails: [],
       selectedCover: "",
     };
@@ -134,7 +135,7 @@ export default {
       if (navigator.onLine) {
         const noti = this.$vs.notify({
           position: "top-center",
-          title: `Fetching thumbnails`,
+          title: `Fetching possible cover art`,
           color: "success",
         });
         this.possibleThumbnails = [];
@@ -178,12 +179,17 @@ export default {
     toggleShuffleMode() {
       document.querySelector(".playingPane").classList.toggle("shuffleMode");
       this.toggleShuffler();
+      this.shuffle = !this.shuffle;
+      const state = this.shuffle ? "On" : "Off";
+      console.log("Shuffle is" + state);
     },
     toggleRepeatMode() {
       document.querySelector(".playingPane").classList.toggle("repeatMode");
-      this.repeat = !this.repeat;
       document.querySelector("audio").loop = this.repeat;
+      this.repeat = !this.repeat;
       this.setRepeat();
+      const state = this.repeat ? "On" : "Off";
+      console.log("Repeat is" + state);
       const noti = this.$vs.notify({
         position: "top-center",
         title: `Repeat ${this.repeat}`,
@@ -244,6 +250,10 @@ export default {
         position: "top-center",
         title: "An error occured while changing song info",
       });
+    });
+    electron.ipcRenderer.on("YTStreamURL", (e, data) => {
+      document.querySelector("video").src = data.streamURL;
+      document.querySelector("video").play();
     });
     window.addEventListener("keyup", (e) => {
       if (e.key === "ArrowRight") {
@@ -377,16 +387,18 @@ export default {
     overflow: hidden;
     transition: 0.2s ease;
     .iconBt {
-      padding: 10px;
+      padding: 5px;
+      margin: 5px;
       border-radius: 40px;
       background: rgba(0, 64, 255, 0);
       transition: 0.2s ease-in-out;
+      border: 1px solid rgba(255, 255, 255, 0);
     }
     .iconBt:hover {
       cursor: pointer;
-      background: rgb(255, 255, 255);
+      border: 1px solid rgb(255, 255, 255);
       img {
-        filter: invert(100%);
+        // filter: invert(100%);
       }
     }
   }

@@ -30,6 +30,9 @@ export default new Vuex.Store({
     repeat: false,
     shuffle: false,
     isPlaying: false,
+    discoverAlbums: [],
+    discoverTracks: [],
+    discoverArtists: [],
   },
   mutations: {
     switchTab: (state, tab) => {
@@ -181,6 +184,77 @@ export default new Vuex.Store({
       state.playlists.unshift(newPlaylist);
     },
     updateTrack: (state, path) => {},
+    getAlbums(state, htmlData) {
+      state.discoverAlbums = [];
+      console.log("someyhong from albums");
+      htmlData("div.resource-list--release-list-item").each((i, element) => {
+        const albumName = element.children[1].children[1].firstChild.data;
+        const artistName =
+          element.children[3].children[1].children[1].firstChild.data;
+        let albumCover;
+        if (element.children[9].children[1]) {
+          albumCover = element.children[9].children[1].children[1].attribs.src;
+        } else {
+          albumCover = element.children[7].children[1].children[1].attribs.src;
+        }
+        let linkToAlbumPage;
+        if (element.children[11]) {
+          linkToAlbumPage =
+            "https://last.fm" + element.children[11].attribs.href;
+        } else {
+          linkToAlbumPage =
+            "https://last.fm" + element.children[9].attribs.href;
+        }
+        const albumDetails = {
+          albumName,
+          albumCover,
+          artistName,
+          linkToAlbumPage,
+        };
+        state.discoverAlbums.unshift(albumDetails);
+      });
+    },
+    getArtists(state, htmlData) {
+      state.discoverArtists = [];
+      htmlData("div.big-artist-list-item").each((i, element) => {
+        const artistName = element.children[1].firstChild.children[0].data;
+        const linkToArtistPage =
+          "https://last.fm" + element.children[1].firstChild.attribs.href;
+        const artistCoverImg = element.children[3].children[1].attribs.src;
+        const artistDetails = {
+          artistName,
+          linkToArtistPage,
+          artistCoverImg,
+        };
+        state.discoverArtists.unshift(artistDetails);
+        // console.table(artistDetails);
+      });
+    },
+    getTracks(state, htmlData) {
+      state.discoverTracks = [];
+      htmlData("tr.chartlist-row--with-artist").each((i, element) => {
+        let ytLink;
+        let artistName;
+        let artistLink;
+        let trackName;
+        if (element.children[3].children[1]) {
+          const attrs = element.children[3].children[1].attribs;
+          ytLink = attrs["href"];
+          artistName = attrs["data-artist-name"];
+          artistLink = attrs["data-artist-url"];
+          trackName = attrs["data-track-name"];
+          const trackDetails = {
+            ytLink,
+            artistName,
+            artistLink,
+            trackName,
+          };
+          state.discoverTracks.unshift(trackDetails);
+        } else {
+          console.log("track is not playable");
+        }
+      });
+    },
   },
   getters: {
     queuedTracks: (state) => state.queue,
@@ -193,6 +267,9 @@ export default new Vuex.Store({
     playlists: (state) => state.playlists,
     tracksGroupedByArtist: (state) => state.groupedByArtist,
     tracksGroupedByAlbum: (state) => state.groupedByAlbum,
+    discoverArtists: (state) => state.discoverArtists,
+    discoverAlbums: (state) => state.discoverAlbums,
+    discoverTracks: (state) => state.discoverTracks,
   },
   actions: {
     determineNextTrack(state) {

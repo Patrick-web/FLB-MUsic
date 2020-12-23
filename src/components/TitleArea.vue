@@ -13,12 +13,6 @@
         placeholder="Search for Tracks"
         class="inputElem"
       />
-      <img
-        class="iconLeft magnifier"
-        style="pointer-events:none"
-        src="@/assets/search.svg"
-        alt
-      />
       <div @click="clearSearch" class="iconLeft clearer">
         <img src="@/assets/x.svg" alt v-if="query" />
       </div>
@@ -101,10 +95,9 @@ export default {
   margin-bottom: 20px;
   margin-top: 20px;
   width: 100%;
-
-  .searchBar {
-    position: relative;
-  }
+}
+.searchBar {
+  position: relative;
   .iconLeft {
     position: absolute;
     top: 50%;
@@ -125,7 +118,7 @@ export default {
   }
   input {
     padding: 5px;
-    padding-left: 40px;
+    padding-left: 10px;
     font-size: 1.3rem;
     border-radius: 20px;
     border: 1px solid transparent;
@@ -139,7 +132,7 @@ export default {
 
   input:focus {
     padding-left: 10px;
-    width: 400px;
+    // width: 400px;
     border-radius: 10px;
   }
   input:focus ~ .magnifier {

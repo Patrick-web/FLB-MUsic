@@ -35,7 +35,7 @@
     </div>
     <div class="options">
       <div @click.stop="addPlayNextClass($event)" class="option">
-        <img width="15px" src="@/assets/arrow-undo-outline.png" alt="" />
+        <img width="15px" src="@/assets/arrow-undo-outline.svg" alt="" />
         <span>Play Next</span>
       </div>
       <div @click.stop="queueTrack($event)" class="option">
