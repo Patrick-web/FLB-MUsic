@@ -67,6 +67,7 @@ export default {
   left: 30%;
   z-index: 10;
   background: #171717;
+  box-shadow: 0px 0px 50px black;
   transform: translate(0%, -50%);
   padding: 10px;
   border-radius: 15px;
@@ -74,7 +75,6 @@ export default {
   color: white;
   font-family: roboto-light;
   text-align: center;
-  box-shadow: 0px 0px 50px black;
   max-height: 400px;
   overflow: hidden;
   overflow-y: scroll;

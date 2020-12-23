@@ -73,6 +73,21 @@ export default {
           document.querySelector(`#${pos}`).classList.add("activeTab");
           tabsWrapper.style.transform = "translateX(-83.3%)";
           document.querySelector(".MainGrid").classList.add("tabIsDiscover");
+          if (!navigator.onLine) {
+            const noti = this.$vs.notify({
+              position: "top-center",
+              title: `You can't stream without internet, can you?`,
+              color: "danger",
+            });
+          } else {
+            const webview = document.querySelector("webview");
+            if (webview.isLoading()) {
+              const noti = this.$vs.notify({
+                position: "top-center",
+                title: `Loading Deezer...`,
+              });
+            }
+          }
           break;
 
         default:
@@ -105,6 +120,9 @@ export default {
   }
   p:hover {
     color: #1c73ff;
+  }
+  .activeTab {
+    font-weight: 800;
   }
   .activeTab:hover {
     color: white !important;

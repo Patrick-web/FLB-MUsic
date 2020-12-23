@@ -1,5 +1,5 @@
 <template>
-  <div v-if="playingTrack.path" class="TrackBar">
+  <div class="TrackBar">
     <audio :src="playingTrack.path" id="audioTag" autoplay></audio>
 
     <div @click="seek($event)" class="seekBar">
@@ -92,7 +92,6 @@ export default {
     seek(e) {
       const track = document.querySelector(".seekBar");
       const length = e.clientY - track.getBoundingClientRect().y;
-      //   console.log(e.clientY);
       const progress = document.querySelector(".seekProgress");
       if (length > -1 && length <= 900) {
         progress.style.height = length + "px";
@@ -104,7 +103,6 @@ export default {
 
       audio.currentTime = (percentageSeek * audio.duration) / 100;
       audio.play();
-      console.log((percentageSeek * audio.duration) / 100);
     },
     timeFormatter(duration) {
       // Hours, minutes and seconds

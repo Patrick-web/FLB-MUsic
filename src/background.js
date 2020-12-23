@@ -1,6 +1,8 @@
 "use strict";
 
+import { exec } from "child_process";
 import { app, protocol, BrowserWindow, dialog, ipcMain } from "electron";
+import { stdout } from "process";
 import { createProtocol } from "vue-cli-plugin-electron-builder/lib";
 const NodeID3 = require("node-id3");
 const isDevelopment = process.env.NODE_ENV !== "production";
@@ -205,33 +207,71 @@ ipcMain.on("updateTrackInfo", async (e, data) => {
     APIC: coverPath,
   };
   let file = data.path;
-  let success = NodeID3.write(tags, file);
-  console.log("Tag write is " + success);
-  if (success) {
-    const folder = file.match(/(.*)[\/\\]/)[1] || "";
-    const mimeType = `.${data.path.split(".").pop()}`;
-    const newFileName = data.title + mimeType;
-    let newFilePath = PATH.join(folder, newFileName);
-    newFilePath = newFilePath.replace(/\s\./g, ".");
-    var isWin = process.platform === "win32";
-    let slash = "/";
-    if (isWin) slash = "\\";
-    newFilePath = newFilePath.replace(/\/\s/g, slash);
-    if (mimeType === ".m4a") {
-      newFilePath = await convertToMp3(data.path, newFilePath);
-      console.log(newFilePath);
+  // let success = NodeID3.write(tags, file);
+  // console.log("Tag write is " + success);
+  // if (success) {
+  //   const folder = file.match(/(.*)[\/\\]/)[1] || "";
+  //   const mimeType = `.${data.path.split(".").pop()}`;
+  //   const newFileName = data.title + mimeType;
+  //   let newFilePath = PATH.join(folder, newFileName);
+  //   newFilePath = newFilePath.replace(/\s\./g, ".");
+  //   var isWin = process.platform === "win32";
+  //   let slash = "/";
+  //   if (isWin) slash = "\\";
+  //   newFilePath = newFilePath.replace(/\/\s/g, slash);
+  //   if (mimeType === ".m4a") {
+  exec(
+    `ffmpeg -i ${file} /home/x/Music/cc.mp3`,
+    (e) => {
+      if (!e) console.log("success");
+    },
+    (stdo) => console.log(stdo)
+  );
+  // }
+  // FS.rename(data.path, newFilePath, () => console.log("rename successful"));
+  // console.log("New File is located at " + newFilePath);
+  // parseAudioFile(newFilePath, "audioWithCover", false);
+  // win.webContents.send("tagWriteSuccessful");
+  // win.webContents.send("newFilePath");
+  // console.log("==================================");
+  // } else {
+  //   win.webContents.send("tagWriteError");
+  // }
+});
+let importedVideo;
+ipcMain.on("importVideoForConversion", async () => {
+  let file = dialog.showOpenDialog({
+    title: "Select Video",
+    filters: [
+      {
+        name: "Video (.mp4, .m4v, .webm, .mkv)",
+      },
+    ],
+    properties: ["openFile"],
+  });
+  if (file) {
+    for (let possibleVideo of (await file).filePaths) {
+      if (
+        possibleVideo.includes(".mp4") ||
+        possibleVideo.includes(".m4v") ||
+        possibleVideo.includes(".webm") ||
+        possibleVideo.includes(".mkv")
+      ) {
+        importedVideo = possibleVideo;
+        win.webContents.send("importedVideo", importedVideo);
+      }
     }
-    // FS.rename(data.path, newFilePath, () => console.log("rename successful"));
-    // console.log("New File is located at " + newFilePath);
-    // parseAudioFile(newFilePath, "audioWithCover", false);
-    // win.webContents.send("tagWriteSuccessful");
-    // win.webContents.send("newFilePath");
-    // console.log("==================================");
   } else {
-    win.webContents.send("tagWriteError");
+    return;
   }
 });
-
+ipcMain.on("startConversionToMp3", (e) => {
+  console.log("starting Conversion");
+  const newFileName =
+    importedVideo.replace(/(.*)[\/\\]/, "").split(".")[0] + ".mp3";
+  // console.log(newFileName);
+  convertToMp3(importedVideo, PATH.join(MUSICFOLDER, newFileName));
+});
 ipcMain.on("addMusicFromFile", async () => {
   let files = dialog.showOpenDialog({
     title: "Add music",
@@ -457,6 +497,7 @@ function getBinaries() {
 
 getBinaries();
 async function convertToMp3(source, savePath) {
+  console.log("Save path is " + savePath);
   await new Promise((resolve) => {
     try {
       ffmpeg(source)
@@ -465,16 +506,21 @@ async function convertToMp3(source, savePath) {
           console.log("Error in converting: " + err.message);
         })
         .on("progress", (progress) => {
-          console.log("Processing: " + progress.targetSize + " KB converted");
+          console.log(Math.floor(progress.percent));
+          win.webContents.send(
+            "conversionProgress",
+            Math.floor(progress.percent)
+          );
         })
         .on("end", () => {
           console.log("Processing finished !");
+          parseAudioFile(savePath, "audioWithCover", false);
           resolve();
         })
         .save(savePath); //path where you want to save your file
     } catch (error) {
+      resolve();
       console.log("Error in converting");
-      return merge(false);
     }
   });
   return savePath;

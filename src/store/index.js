@@ -54,7 +54,17 @@ export default new Vuex.Store({
       console.log(index);
       state.queue.splice(index, 1);
     },
-    addTrack: (state, track) => state.addedTracks.unshift(track),
+    addTrack: (state, track) => {
+      let alreadyAdded = false;
+      state.addedTracks.forEach((addedTrack) => {
+        if (addedTrack.path == track.path) {
+          alreadyAdded = true;
+          console.log("Already added");
+          return;
+        }
+      });
+      if (!alreadyAdded) state.addedTracks.unshift(track);
+    },
     sortTracks: (state, param) => {
       function compare(a, b) {
         if (a[`${param}`] < b[`${param}`]) {
@@ -346,5 +356,4 @@ function selectRandomTrack() {
     .parentElement.parentElement.querySelectorAll(".TrackCard");
   const selectedTrack = candidateTracks[getRandom(candidateTracks.length)];
   selectedTrack.click();
-  selectedTrack.scrollIntoView();
 }

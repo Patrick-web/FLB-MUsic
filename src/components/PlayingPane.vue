@@ -1,5 +1,5 @@
 <template>
-  <div v-if="playingtrack.path" class="playingPane animated faster">
+  <div class="playingPane animated faster">
     <div class="trackTags animated faster">
       <img id="coverArtTag" :src="playingTrack.cover" alt="" />
       <h4 id="selectCoverArt">Import Cover Art</h4>
@@ -38,12 +38,26 @@
         Album : <span id="albumName">{{ playingTrack.album }}</span>
       </p>
     </div>
+
     <div class="editModeBtns animated faster">
       <p @click="saveChanges" id="saveChanges">Save Changes</p>
       <p @click="exitEditMode" id="exitEditMode">Exit Edit Mode</p>
     </div>
 
     <canvas id="visualizerArea"></canvas>
+    <div class="volumeRockerArea">
+      <img src="@/assets/volume_down.svg" alt="" />
+      <input
+        @change="adjustVolume"
+        v-model="volume"
+        type="range"
+        min="0"
+        max="1"
+        step="0.1"
+        name=""
+        id=""
+      />
+    </div>
 
     <div class="p_options" v-if="playingTrack.title">
       <div @click="showPlaylistAdder" class="iconBt">
@@ -97,6 +111,7 @@ export default {
       shuffle: false,
       possibleThumbnails: [],
       selectedCover: "",
+      volume: 1,
     };
   },
   methods: {
@@ -110,6 +125,9 @@ export default {
       "setRepeat",
       "toggleShuffler",
     ]),
+    adjustVolume() {
+      document.querySelector("audio").volume = this.volume;
+    },
     playPrev() {
       const prevTrack = document.querySelector(".playingtrack").previousSibling;
       if (prevTrack) {
@@ -314,10 +332,17 @@ export default {
   flex-direction: column;
   align-items: center;
   max-width: 285px;
+  #visualizerArea {
+    position: absolute;
+    width: 100%;
+    height: 25%;
+    bottom: 15%;
+  }
   #cover {
     position: relative;
     z-index: 3;
     width: 85%;
+    max-width: 240px;
     margin-top: 45px;
     box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.205);
   }
@@ -408,6 +433,31 @@ export default {
   bottom: 70px !important;
   padding-right: 0px;
   padding-left: 0px;
+}
+.volumeRockerArea {
+  position: absolute;
+  bottom: 130px;
+  width: 10%;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(10px);
+  background-color: rgba(100, 100, 100, 0.062);
+  border-radius: 10px;
+  padding: 5px;
+  input {
+    display: none;
+    width: 85%;
+    height: 2px;
+  }
+}
+.volumeRockerArea:hover {
+  width: 80%;
+  input {
+    display: block;
+    cursor: pointer;
+  }
 }
 .trackTags {
   backdrop-filter: blur(10px);

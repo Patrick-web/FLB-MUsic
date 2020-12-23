@@ -1,19 +1,30 @@
 <template>
   <div @click="cleanUp" class="MainGrid">
+    <img
+      id="logo"
+      class="animated pulse infinite slow"
+      @click="toggleInfo"
+      src="@/assets/FLBMusicLogo.svg"
+      alt=""
+    />
+    <Profile />
     <PlaylistAdder />
-
     <div class="featuresSwitcherArea">
       <FeaturesSwitcher />
     </div>
     <div class="centralArea">
       <TitleArea />
       <TabSwitcher />
-      <div class="tabsWrapper">
+      <div @click="hideGems" class="tabsWrapper">
         <div class="tab addedTracksTab">
           <div v-if="addedTracks.length > 1" class="trackActions">
             <div>
-              <p>Edit Mode</p>
-              <img style="max-width:18px" src="@/assets/pen.svg" alt="" />
+              <p>FX Mode</p>
+              <img
+                style="max-width:18px"
+                src="@/assets/star_border.svg"
+                alt=""
+              />
             </div>
             <SortWidget />
           </div>
@@ -150,6 +161,7 @@
           <Discover />
         </div>
       </div>
+      <Gems />
     </div>
     <div class="playingPaneArea">
       <div class="tabber">
@@ -170,7 +182,6 @@
 import TabSwitcher from "@/components/TabSwitcher.vue";
 import TitleArea from "@/components/TitleArea.vue";
 import FeaturesSwitcher from "@/components/FeaturesSwitcher.vue";
-import Tracks from "@/components/Tracks.vue";
 import PlayingPane from "@/components/PlayingPane.vue";
 import TrackCard from "@/components/TrackCard.vue";
 import PlaylistAdder from "@/components/PlaylistAdder.vue";
@@ -178,6 +189,9 @@ import { mapMutations, mapGetters } from "vuex";
 import SortWidget from "./components/SortWidget.vue";
 import QueuedTracks from "./components/QueuedTracks.vue";
 import Discover from "./components/Discover.vue";
+import Gems from "./components/Gems.vue";
+import Profile from "@/components/Profile.vue";
+
 const electron = window.require("electron");
 
 export default {
@@ -186,13 +200,14 @@ export default {
     TabSwitcher,
     TitleArea,
     FeaturesSwitcher,
-    Tracks,
     PlayingPane,
     TrackCard,
     PlaylistAdder,
     SortWidget,
     QueuedTracks,
     Discover,
+    Gems,
+    Profile,
   },
   computed: {
     ...mapGetters([
@@ -220,6 +235,13 @@ export default {
       if (recents) {
         electron.ipcRenderer.send("parseRecentlyPlayed", recents);
       }
+    },
+    toggleInfo() {
+      document.body.classList.toggle("showInfo");
+      document.querySelector("#logo").classList.remove("animated");
+    },
+    hideGems() {
+      document.querySelector("#playerFeaturebtn").click();
     },
     toggleExpansion(e) {
       const panel = e.target.parentElement;
@@ -380,6 +402,16 @@ body {
   display: grid;
   grid-template-columns: 0.2fr 4fr 1.2fr;
   column-gap: 50px;
+  #logo {
+    position: fixed;
+    width: 40px;
+    top: 25px;
+    left: 45px;
+    z-index: 20;
+  }
+  #logo:hover {
+    cursor: pointer;
+  }
 }
 .centralArea {
   overflow: hidden;
@@ -391,6 +423,14 @@ body {
     transition: 0.2s ease-in-out;
   }
 }
+.currentFeatureIsGems {
+  .Gems {
+    left: 50%;
+    transform: translate(-50%, -50%) scale(1);
+    pointer-events: all;
+  }
+}
+
 .tabIsDiscover {
   grid-template-columns: 1fr;
   .Titlebar {

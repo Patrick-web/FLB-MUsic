@@ -1,16 +1,14 @@
 <template>
   <div class="Titlebar">
     <div class="pageNames">
-      <h1>Music Player</h1>
-      <h1>Mix Maker</h1>
-      <h1>Video to Mp3</h1>
+      <h1>FLB Music</h1>
     </div>
     <div class="searchBar">
       <input
         v-on:keyup="search"
         v-model="query"
         id="search"
-        placeholder="Search for Tracks"
+        placeholder="Search. . . 🎶  🎙️ 🎸 🎧"
         class="inputElem"
       />
       <div @click="clearSearch" class="iconLeft clearer">

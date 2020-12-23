@@ -39,3 +39,6 @@ button:hover {
 .vs-notifications {
   text-align: center !important;
 }
+.con-vs-loading {
+  pointer-events: none;
+}

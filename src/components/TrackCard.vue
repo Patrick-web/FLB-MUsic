@@ -91,7 +91,6 @@ export default {
       if (document.querySelector(".showOptions"))
         document.querySelector(".showOptions").classList.remove("showOptions");
       e.currentTarget.classList.add("showOptions");
-      e.currentTarget.scrollIntoView();
     },
     showPlaylistAdder() {
       document.querySelector(".PlaylistAdder").classList.add("show");

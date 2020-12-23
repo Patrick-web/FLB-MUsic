@@ -1,17 +1,17 @@
 <template>
   <div class="vMenu">
     <div class="activeFeatureIndicator"></div>
-    <div @click="switchFeature($event, 'player')" class="tabActive vmenu-group">
+    <div
+      @click="switchFeature($event, 'player')"
+      id="playerFeaturebtn"
+      class="tabActive vmenu-group"
+    >
       <img src="@/assets/play-circle.svg" alt />
       <p style="padding-left:25px" class="v-tooltip">Player</p>
     </div>
-    <div @click="switchFeature($event, 'mixer')" class="vmenu-group">
+    <div @click="switchFeature($event, 'gems')" class="vmenu-group">
       <img class="whiten" src="@/assets/gem.svg" alt />
-      <p style="padding-left:30px" class="v-tooltip">Mixer</p>
-    </div>
-    <div @click="switchFeature($event, 'converter')" class="vmenu-group">
-      <img src="@/assets/missed_video_call.svg" alt />
-      <p class="v-tooltip">Converter</p>
+      <p style="padding-left:30px" class="v-tooltip">Gems</p>
     </div>
     <div @click="toggleAddOptions()" class="vmenu-group">
       <img src="@/assets/plus.svg" alt />
@@ -44,22 +44,16 @@ export default {
       //   const pagesWrapper = document.querySelector(".pagesWrapper");
       document.querySelector(".tabActive").classList.remove("tabActive");
       element.classList.add("tabActive");
+      document.querySelector(".MainGrid").classList.add("currentFeatureIsGems");
       switch (tab) {
         case "player":
-          indicator.style.top = "10%";
-          //   pagesWrapper.style.top = "0%";
-          document.body.classList.add("currentTabIsSubscribed");
+          indicator.style.top = "12.5%";
+          document
+            .querySelector(".MainGrid")
+            .classList.remove("currentFeatureIsGems");
           break;
-        case "mixer":
-          indicator.style.top = "36%";
-          //   pagesWrapper.style.top = "-100%";
-          document.body.classList.remove("currentTabIsSubscribed");
-          break;
-        case "converter":
-          indicator.style.top = "62.5%";
-          //   pagesWrapper.style.top = "-201%";
-          break;
-        default:
+        case "gems":
+          indicator.style.top = "48%";
           break;
       }
     },
@@ -96,7 +90,7 @@ export default {
   z-index: 8;
   width: 50px;
   background: #141414;
-  height: 250px;
+  height: 200px;
   padding: 5px;
   padding-top: 10px;
   padding-bottom: 10px;
@@ -105,7 +99,7 @@ export default {
     .v-tooltip {
       background: white;
       position: absolute;
-      top: 20%;
+      top: 0%;
       right: -50%;
       transform: scale(0) translate(100%, 0%);
       opacity: 0;
@@ -129,7 +123,7 @@ export default {
   }
   .activeFeatureIndicator {
     position: absolute;
-    top: 10%;
+    top: 12.5%;
     left: 50%;
     transform: translate(-50%, -50%);
     transition: 0.2s ease-in-out;
