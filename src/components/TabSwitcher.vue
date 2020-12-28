@@ -7,7 +7,7 @@
     <p id="recentsTracks" @click="moveIndicator('recentsTracks')">Recents</p>
     <p id="albums" @click="moveIndicator('albums')">Albums</p>
     <p id="artists" @click="moveIndicator('artists')">Artists</p>
-    <p id="discover" @click="moveIndicator('discover')">Deezer</p>
+    <p id="discover" @click="moveIndicator('discover')">Stream</p>
     <div class="indicator"></div>
   </div>
 </template>
@@ -50,13 +50,13 @@ export default {
           this.switchTab(pos);
           break;
         case "albums":
-          indicator.style.left = "50.5%";
+          indicator.style.left = "51%";
           document.querySelector(".activeTab").classList.remove("activeTab");
           document.querySelector(`#${pos}`).classList.add("activeTab");
           tabsWrapper.style.transform = "translateX(-50%)";
           setTimeout(() => {
             this.populateByAlbumGroup();
-          }, 50);
+          }, 500);
           break;
         case "artists":
           indicator.style.left = "67.5%";
@@ -65,7 +65,7 @@ export default {
           tabsWrapper.style.transform = "translateX(-66.65%)";
           setTimeout(() => {
             this.populateByArtistGroup();
-          }, 50);
+          }, 500);
           break;
         case "discover":
           indicator.style.left = "85.1%";
@@ -81,6 +81,7 @@ export default {
             });
           } else {
             const webview = document.querySelector("webview");
+            console.log("Webview is " + webview.isLoading());
             if (webview.isLoading()) {
               const noti = this.$vs.notify({
                 position: "top-center",
@@ -108,6 +109,7 @@ export default {
   margin-bottom: 10px;
   position: relative;
   overflow: hidden;
+  z-index: 22;
   p {
     text-align: center;
     position: relative;

@@ -3,168 +3,44 @@
     <img
       id="logo"
       class="animated pulse infinite slow"
-      @click="toggleInfo"
+      @click="togglePersonalInfo"
       src="@/assets/FLBMusicLogo.svg"
       alt=""
     />
     <Profile />
+    <Updates />
     <PlaylistAdder />
     <div class="featuresSwitcherArea">
       <FeaturesSwitcher />
+      <img
+        @click="showSettings"
+        src="@/assets/settings.svg"
+        alt=""
+        id="settingsBt"
+      />
+      <img
+        @click="showUpdates"
+        src="@/assets/update.svg"
+        alt=""
+        id="updatesBt"
+      />
+      <Settings />
     </div>
     <div class="centralArea">
       <TitleArea />
       <TabSwitcher />
       <div @click="hideGems" class="tabsWrapper">
-        <div class="tab addedTracksTab">
-          <div v-if="addedTracks.length > 1" class="trackActions">
-            <div>
-              <p>FX Mode</p>
-              <img
-                style="max-width:18px"
-                src="@/assets/star_border.svg"
-                alt=""
-              />
-            </div>
-            <SortWidget />
-          </div>
-          <br />
-          <br />
-          <br />
-          <br />
-          <transition-group
-            enter-active-class="animated slideInLeft faster"
-            leave-active-class="animated slideOutRight faster"
-          >
-            <TrackCard
-              :cover="track.cover"
-              :album="track.album"
-              :title="track.title"
-              :artist="track.artist"
-              :length="track.formatedLength"
-              :path="track.path"
-              :trackIndex="index"
-              v-for="(track, index) in addedTracks"
-              :key="track.path"
-            />
-          </transition-group>
-        </div>
-        <div class="tab playlistsTab disable__options">
-          <div
-            v-for="playlist in playlists"
-            :key="playlist.name"
-            class="ExpansionPanel"
-          >
-            <div class="titleArea" @click="toggleExpansion($event)">
-              <p>{{ playlist.name }}</p>
-              <img class="expandIcon" src="@/assets/arrowDown.svg" alt="" />
-            </div>
-            <div class="body">
-              <transition-group
-                enter-active-class="animated slideInLeft faster"
-                leave-active-class="animated slideOutRight faster"
-              >
-                <TrackCard
-                  :cover="track.cover"
-                  :album="track.album"
-                  :title="track.title"
-                  :artist="track.artist"
-                  :length="track.formatedLength"
-                  :path="track.path"
-                  :trackIndex="index"
-                  v-for="(track, index) in playlist.tracks"
-                  :key="track.path"
-                />
-              </transition-group>
-            </div>
-          </div>
-        </div>
-        <div class="tab recentsTab">
-          <transition-group
-            enter-active-class="animated slideInLeft faster"
-            leave-active-class="animated slideOutRight faster"
-          >
-            <TrackCard
-              :cover="track.cover"
-              :album="track.album"
-              :title="track.title"
-              :artist="track.artist"
-              :length="track.formatedLength"
-              :trackIndex="index"
-              :path="track.path"
-              v-for="(track, index) in recentsTracks"
-              :key="track.path"
-            />
-          </transition-group>
-        </div>
-        <div class="tab albumsTab">
-          <div
-            v-for="group in tracksGroupedByAlbum"
-            :key="group[0]"
-            class="ExpansionPanel"
-          >
-            <div class="titleArea" @click="toggleExpansion($event)">
-              <p>{{ group[0] }}</p>
-              <img class="expandIcon" src="@/assets/arrowDown.svg" alt="" />
-            </div>
-            <div class="body">
-              <transition-group
-                enter-active-class="animated slideInLeft faster"
-                leave-active-class="animated slideOutRight faster"
-              >
-                <TrackCard
-                  :cover="track.cover"
-                  :album="track.album"
-                  :title="track.title"
-                  :artist="track.artist"
-                  :length="track.formatedLength"
-                  :path="track.path"
-                  :trackIndex="index"
-                  v-for="(track, index) in group[1]"
-                  :key="track.path"
-                />
-              </transition-group>
-            </div>
-          </div>
-        </div>
-        <div class="tab artistsTab">
-          <div
-            v-for="group in tracksGroupedByArtist"
-            :key="group[0]"
-            class="ExpansionPanel"
-          >
-            <div class="titleArea" @click="toggleExpansion($event)">
-              <p>{{ group[0] }}</p>
-              <img class="expandIcon" src="@/assets/arrowDown.svg" alt="" />
-            </div>
-            <div class="body">
-              <transition-group
-                enter-active-class="animated slideInLeft faster"
-                leave-active-class="animated slideOutRight faster"
-              >
-                <TrackCard
-                  :cover="track.cover"
-                  :album="track.album"
-                  :title="track.title"
-                  :artist="track.artist"
-                  :length="track.formatedLength"
-                  :path="track.path"
-                  :trackIndex="index"
-                  v-for="(track, index) in group[1]"
-                  :key="track.path"
-                />
-              </transition-group>
-            </div>
-          </div>
-        </div>
-        <div class="tab discoverTab">
-          <Discover />
-        </div>
+        <TracksTab />
+        <PlaylistsTab />
+        <RecentsTab />
+        <AlbumsTab />
+        <ArtistsTab />
+        <DiscoverTab />
       </div>
       <Gems />
     </div>
     <div class="playingPaneArea">
-      <div class="tabber">
+      <div v-if="addedTracks.length !== 0" class="tabber">
         <div @click="hideQueue($event)" class="activeTab playingTabIcon">
           <img src="@/assets/music_note.svg" alt="" />
         </div>
@@ -179,18 +55,23 @@
 </template>
 
 <script>
+import { mapMutations, mapGetters } from "vuex";
 import TabSwitcher from "@/components/TabSwitcher.vue";
 import TitleArea from "@/components/TitleArea.vue";
 import FeaturesSwitcher from "@/components/FeaturesSwitcher.vue";
 import PlayingPane from "@/components/PlayingPane.vue";
-import TrackCard from "@/components/TrackCard.vue";
 import PlaylistAdder from "@/components/PlaylistAdder.vue";
-import { mapMutations, mapGetters } from "vuex";
-import SortWidget from "./components/SortWidget.vue";
-import QueuedTracks from "./components/QueuedTracks.vue";
-import Discover from "./components/Discover.vue";
-import Gems from "./components/Gems.vue";
+import QueuedTracks from "@/components/QueuedTracks.vue";
+import Gems from "@/components/Gems.vue";
 import Profile from "@/components/Profile.vue";
+import Settings from "@/components/Settings.vue";
+import Updates from "@/components/Updates.vue";
+import TracksTab from "@/components/Tabs/TracksTab.vue";
+import RecentsTab from "@/components/Tabs/RecentsTab.vue";
+import AlbumsTab from "@/components/Tabs/AlbumsTab.vue";
+import ArtistsTab from "@/components/Tabs/ArtistsTab.vue";
+import PlaylistsTab from "@/components/Tabs/PlaylistsTab.vue";
+import DiscoverTab from "./components/Tabs/DiscoverTab.vue";
 
 const electron = window.require("electron");
 
@@ -201,13 +82,18 @@ export default {
     TitleArea,
     FeaturesSwitcher,
     PlayingPane,
-    TrackCard,
     PlaylistAdder,
-    SortWidget,
     QueuedTracks,
-    Discover,
     Gems,
     Profile,
+    Settings,
+    Updates,
+    TracksTab,
+    RecentsTab,
+    AlbumsTab,
+    ArtistsTab,
+    PlaylistsTab,
+    DiscoverTab,
   },
   computed: {
     ...mapGetters([
@@ -225,34 +111,29 @@ export default {
       "addTrack",
       "addPlaylist",
       "loadRecents",
+      "deletePlaylist",
+      "changePlaylistName",
+      "removeFromAddedTracks",
+      "clearRecentsAndPlaylists",
     ]),
-    loadRecentsAndPlaylists() {
-      const playlists = JSON.parse(localStorage.getItem("playlists"));
-      if (playlists) {
-        electron.ipcRenderer.send("parsePlaylist", playlists);
-      }
-      const recents = JSON.parse(localStorage.getItem("recentlyPlayed"));
-      if (recents) {
-        electron.ipcRenderer.send("parseRecentlyPlayed", recents);
-      }
+    showSettings() {
+      document
+        .querySelector(".featuresSwitcherArea")
+        .classList.toggle("showSettings");
+      document.querySelector(".MainGrid").classList.remove("showUpdates");
     },
-    toggleInfo() {
+    showUpdates() {
+      document.querySelector(".MainGrid").classList.toggle("showUpdates");
+    },
+    togglePersonalInfo() {
       document.body.classList.toggle("showInfo");
       document.querySelector("#logo").classList.remove("animated");
     },
     hideGems() {
       document.querySelector("#playerFeaturebtn").click();
-    },
-    toggleExpansion(e) {
-      const panel = e.target.parentElement;
-      if (!panel.classList.contains("expanded")) {
-        if (document.querySelector(".expanded")) {
-          document.querySelector(".expanded").classList.remove("expanded");
-        }
-        panel.classList.add("expanded");
-      } else {
-        panel.classList.remove("expanded");
-      }
+      document
+        .querySelector(".featuresSwitcherArea")
+        .classList.remove("showSettings");
     },
     cleanUp() {
       if (document.querySelector(".showOptions")) {
@@ -266,9 +147,9 @@ export default {
       e.currentTarget.classList.add("activeTab");
       document.querySelector(".playingPaneArea").classList.add("showQueue");
       document.querySelector(".QueuedTracks").classList.add("slideInRight");
-      setTimeout(() => {
-        this.removeAnimationClasses();
-      }, 300);
+      document
+        .querySelector(".QueuedTracks")
+        .classList.replace("slideOutRight", "slideInRight");
     },
     hideQueue(e) {
       document
@@ -282,51 +163,32 @@ export default {
         document
           .querySelector(".playingPaneArea")
           .classList.remove("showQueue");
-        this.removeAnimationClasses();
       }, 300);
-    },
-    removeAnimationClasses() {
-      setTimeout(() => {
-        document
-          .querySelector(".QueuedTracks")
-          .classList.remove("slineInRight", "slideOutRight");
-      }, 500);
     },
   },
   mounted() {
-    const thumbnail = require("./assets/Thumbnail.png");
-    console.log(thumbnail);
-    electron.ipcRenderer.on("playNow", (event, track) => {
-      if (document.querySelector(".addedTracksTab .TrackCard")) {
-        document.querySelector(".addedTracksTab .TrackCard").click();
-      }
+    electron.ipcRenderer.send("loadArguments");
+    electron.ipcRenderer.on("errorMsg", (e, msg) => {
+      const noti = this.$vs.notify({
+        color: "warning",
+        position: "top-center",
+        title: msg,
+      });
     });
-    electron.ipcRenderer.on("audioWithCover", (event, track) => {
-      document.querySelector(".addedTracksTab").scrollTo(0, 0);
-      this.addTrack(track);
-    });
-    electron.ipcRenderer.on("addToRecents", (event, track) => {
-      this.loadRecents(track);
-    });
-    electron.ipcRenderer.on("addPlaylist", (event, playlists) => {
-      this.addPlaylist(playlists);
-    });
-    this.loadRecentsAndPlaylists();
-    electron.ipcRenderer.on("tagWriteSuccessful", (e) => {
+    electron.ipcRenderer.on("successMsg", (e, msg) => {
       const noti = this.$vs.notify({
         color: "success",
         position: "top-center",
-        title: "Song info succesfully changed",
+        title: msg,
       });
-      this.loadRecentsAndPlaylists();
-      setTimeout(() => {
-        const currentTime = document.querySelector("#audioTag").currentTime;
-        document.querySelector(".addedTracksTab .TrackCard").click();
-        document.querySelector("#audioTag").currentTime = currentTime;
-      }, 1000);
     });
-    electron.ipcRenderer.send("loadArguments");
-
+    electron.ipcRenderer.on("normalMsg", (e, msg) => {
+      const noti = this.$vs.notify({
+        color: "success",
+        position: "top-center",
+        title: msg,
+      });
+    });
     String.prototype.toHHMMSS = function() {
       var sec_num = parseInt(this, 10); // don't forget the second param
       var hours = Math.floor(sec_num / 3600);
@@ -351,24 +213,12 @@ export default {
       const filePaths = Array.from(event.dataTransfer.files).map(
         (file) => file.path
       );
-      const noti = this.$vs.notify({
-        position: "top-center",
-        title: "Processing added track(s)",
-      });
       electron.ipcRenderer.send("processDroppedFiles", filePaths);
     });
 
     document.addEventListener("dragover", (e) => {
       e.preventDefault();
       e.stopPropagation();
-    });
-
-    document.addEventListener("dragenter", (event) => {
-      console.log("File is in the Drop Space");
-    });
-
-    document.addEventListener("dragleave", (event) => {
-      console.log("File has left the Drop Space");
     });
   },
 };
@@ -413,8 +263,23 @@ body {
     cursor: pointer;
   }
 }
+.noMusic {
+  width: 100%;
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  // background: yellow;
+  img {
+    margin-top: 80px;
+    margin-bottom: 20px;
+    width: 20%;
+  }
+}
 .centralArea {
   overflow: hidden;
+  position: relative;
   .tabsWrapper {
     width: 600%;
     height: 50vh;
@@ -449,6 +314,9 @@ body {
     max-width: 600px;
     margin: auto;
   }
+  #refreshWebview {
+    display: block;
+  }
 }
 .featuresSwitcherArea {
   display: flex;
@@ -461,7 +329,7 @@ body {
   height: 83vh;
   overflow: hidden;
   overflow-y: scroll;
-  padding-top: 40px;
+  padding-top: 10px;
 }
 .addedTracksTab {
   padding-top: 0px;
@@ -585,9 +453,41 @@ body {
   }
 }
 .playlistsTab {
+  .showPlaylistOptions {
+    .body {
+      max-height: 280px !important;
+      height: 180px;
+      .plEditor {
+        top: 20px !important;
+      }
+    }
+  }
   .ExpansionPanel {
     .body {
       padding-right: 20px;
+      position: relative;
+      .plEditor {
+        padding: 10px;
+        position: absolute;
+        width: 200px;
+        left: 50%;
+        top: -200px;
+        transform: translateX(-50%);
+        z-index: 4;
+        border-radius: 15px;
+        background: #171717;
+        box-shadow: 0px 0px 50px black;
+        input {
+          background: #111111;
+          padding: 5px;
+          border: none;
+          border-bottom: 0.5px solid rgb(255, 255, 255);
+          margin-top: 5px;
+        }
+        input:focus {
+          border-bottom: 1px solid #1e74ff;
+        }
+      }
     }
   }
 }
@@ -658,5 +558,21 @@ body {
 .discoverTab {
   padding-top: 0px;
   height: 100vh;
+}
+#settingsBt,
+#updatesBt {
+  position: absolute;
+  bottom: 20px;
+  width: 30px;
+  margin-left: 10px;
+  cursor: pointer;
+  z-index: 10;
+}
+#settingsBt,
+#updatesBt:hover {
+  transform: rotate(45deg);
+}
+#updatesBt {
+  bottom: 60px;
 }
 </style>

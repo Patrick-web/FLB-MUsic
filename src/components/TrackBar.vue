@@ -1,5 +1,6 @@
 <template>
   <div class="TrackBar">
+    <div v-if="!playingTrack.path" class="noMusicPlaying"></div>
     <audio :src="playingTrack.path" id="audioTag" autoplay></audio>
 
     <div @click="seek($event)" class="seekBar">
@@ -21,7 +22,7 @@
         </div>
       </div>
     </div>
-    <div @click="toggleIsPlaying" class="iconsWrapper">
+    <div @click="toggleIsPlaying" id="pauseBt" class="iconsWrapper">
       <img
         v-if="!isPlaying"
         @click="play"
@@ -181,6 +182,7 @@ export default {
   padding-right: 8px;
   background: #0f0f0f;
 }
+
 .seekBar {
   background: #1b1b1b;
   min-height: 93%;

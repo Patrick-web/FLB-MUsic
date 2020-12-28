@@ -17,10 +17,26 @@
 
 * {
   user-select: none;
+  -webkit-user-drag: none;
   color: white;
   transition: 0.2s ease;
+  /* font-family: roboto; */
 }
-
+.fakeLightMode {
+  filter: invert(1) hue-rotate(180deg);
+}
+.fakeLightMode .TrackCard img {
+  filter: invert(1) hue-rotate(180deg);
+}
+.fakeLightMode #cover {
+  filter: invert(1) hue-rotate(180deg);
+}
+.fakeLightMode .CoverSearcher img {
+  filter: invert(1) hue-rotate(180deg);
+}
+.visualizerOff #visualizerArea {
+  display: none;
+}
 button {
   cursor: pointer;
   border-radius: 20px;
@@ -41,4 +57,92 @@ button:hover {
 }
 .con-vs-loading {
   pointer-events: none;
+}
+.vs-component {
+  font-size: 1.1em;
+  font-family: roboto;
+  font-weight: 700 !important;
+}
+.vs-switch:disabled {
+  opacity: 1 !important;
+}
+.loadingArea {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.loadingIndicator {
+  display: inline-block;
+  width: 80px;
+  height: 80px;
+}
+.loadingIndicator:after {
+  content: " ";
+  display: block;
+  width: 30px;
+  height: 30px;
+  margin: 8px;
+  border-radius: 50%;
+  border: 3px solid #fff;
+  border-color: #fff transparent #fff transparent;
+  animation: loadingIndicator 1.2s linear infinite;
+}
+@keyframes loadingIndicator {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.tool {
+  position: relative;
+}
+
+/*== common styles for both parts of tool tip ==*/
+.tool::before,
+.tool::after {
+  left: 50%;
+  opacity: 0;
+  position: absolute;
+  z-index: -100;
+}
+
+.tool:hover::before,
+.tool:focus::before,
+.tool:hover::after,
+.tool:focus::after {
+  opacity: 1;
+  transform: scale(1) translateY(0);
+  z-index: 100;
+}
+
+/*  */
+
+/*== speech bubble ==*/
+.tool::after {
+  background: #ffffff;
+  border-radius: 20px;
+  bottom: 15%;
+  color: #000000;
+  content: attr(data-tip);
+  font-family: roboto;
+  font-weight: 800;
+  margin-left: -8.75em;
+  padding: 5px;
+  transform: scale(0.6);
+}
+
+.tool:hover::after,
+.tool:focus::after {
+  transition: all 0.2s ease;
+}
+
+@media (max-width: 760px) {
+  .tool::after {
+    font-size: 0.75em;
+    margin-left: -5em;
+    width: 10em;
+  }
 }

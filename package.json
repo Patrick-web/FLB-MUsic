@@ -13,28 +13,22 @@
   },
   "main": "background.js",
   "dependencies": {
-    "browser-id3-writer": "^4.4.0",
     "cheerio": "^1.0.0-rc.3",
     "core-js": "^3.6.5",
+    "fetch-tweets": "^0.1.7",
     "ffbinaries": "^1.1.4",
     "fluent-ffmpeg": "^2.1.2",
     "g-i-s": "^2.1.6",
-    "localforage": "^1.9.0",
-    "loudness": "^0.4.1",
-    "material-icons": "^0.2.3",
-    "move-file": "^2.0.0",
     "music-metadata": "^7.5.0",
     "node-downloader-helper": "^1.0.15",
     "node-id3": "^0.2.1",
-    "node-openvpn": "^0.1.1",
     "sass": "^1.29.0",
     "sass-loader": "^10.1.0",
     "uuidv4": "^6.2.5",
     "vue": "^2.6.11",
     "vuesax": "^3.4.7",
     "vuex": "^3.4.0",
-    "wave-visualizer": "^1.0.6",
-    "youtube-stream-url": "^2.0.1"
+    "wave-visualizer": "^1.0.6"
   },
   "devDependencies": {
     "@vue/cli-plugin-babel": "~4.5.0",
@@ -42,7 +36,7 @@
     "@vue/cli-service": "~4.5.0",
     "electron": "^9.0.0",
     "electron-devtools-installer": "^3.1.0",
-    "vue-cli-plugin-electron-builder": "~2.0.0-rc.5",
+    "vue-cli-plugin-electron-builder": "^1.4.6",
     "vue-cli-plugin-vuesax": "~1.0.0",
     "vue-template-compiler": "^2.6.11"
   }

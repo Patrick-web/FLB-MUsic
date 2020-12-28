@@ -35,8 +35,10 @@
 
 <script>
 const electron = window.require("electron");
+import { mapMutations } from "vuex";
 export default {
   methods: {
+    ...mapMutations(["loadPreviouslyAddedTracks"]),
     switchFeature(e, tab) {
       document.body.classList.remove("showPodcastData");
       const indicator = document.querySelector(".activeFeatureIndicator");
@@ -71,6 +73,12 @@ export default {
       optionsBox.classList.toggle("slideInDown");
       document.querySelector("#addedTracks").click();
     },
+  },
+  mounted() {
+    if (localStorage.getItem("addedTracks")) {
+      const addedTracks = JSON.parse(localStorage.getItem("addedTracks"));
+      this.loadPreviouslyAddedTracks(addedTracks);
+    }
   },
 };
 </script>

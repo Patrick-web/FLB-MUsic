@@ -64,6 +64,13 @@ export default new Vuex.Store({
         }
       });
       if (!alreadyAdded) state.addedTracks.unshift(track);
+      localStorage.setItem("addedTracks", JSON.stringify(state.addedTracks));
+    },
+    loadPreviouslyAddedTracks: (state, tracks) => {
+      state.addedTracks = [...state.addedTracks, ...tracks];
+    },
+    removeFromAddedTracks: (state, index) => {
+      state.addedTracks.splice(index, 1);
     },
     sortTracks: (state, param) => {
       function compare(a, b) {
@@ -113,9 +120,6 @@ export default new Vuex.Store({
         );
       }
     },
-    loadRecents: (state, track) => {
-      state.recentsTracks.push(track);
-    },
     populateByArtistGroup: (state) => {
       const groupMap = groupBy(state.addedTracks, (track) => track.artist);
       state.groupedByArtist = Array.from(groupMap.entries());
@@ -123,6 +127,14 @@ export default new Vuex.Store({
     populateByAlbumGroup: (state) => {
       const groupMap = groupBy(state.addedTracks, (track) => track.album);
       state.groupedByAlbum = Array.from(groupMap.entries());
+    },
+    addPlaylist: (state, newPlaylist) => {
+      state.playlists.forEach((playlist, index) => {
+        if (playlist.name == newPlaylist.name) {
+          state.playlists.splice(index, 1);
+        }
+      });
+      state.playlists.unshift(newPlaylist);
     },
     createPlaylist: (state, playlistName) => {
       const newPlaylist = {
@@ -143,57 +155,26 @@ export default new Vuex.Store({
           );
         }
       });
-
-      const playlistsData = [];
-      state.playlists.forEach((playlist) => {
-        const playlistItem = {
-          name: playlist.name,
-          tracks: [],
-        };
-        playlist.tracks.forEach((track) => {
-          console.log(track);
-          playlistItem.tracks.unshift(track.path.replace("file://", ""));
-        });
-        playlistsData.push(playlistItem);
-      });
-      localStorage.setItem("playlists", JSON.stringify(playlistsData));
+      savePlaylistChanges(state.playlists);
     },
-    removeSelectedTrackToPlaylist: (state, [playlistName, trackIndex]) => {
-      state.playlists.forEach((playlist, playlistIndex) => {
-        if (playlist.name === playlistName) {
-          state.playlists[playlistIndex].tracks.splice(trackIndex, 1);
-          if (
-            playlistName === "Favorites" &&
-            trackIndex === state.indexInFavorites
-          ) {
-            console.log("Unfavoring");
-            document.querySelector(".playingPane").classList.remove("favored");
-          }
-        }
-      });
-      const playlistsData = [];
-      state.playlists.forEach((playlist) => {
-        const playlistItem = {
-          name: playlist.name,
-          tracks: [],
-        };
-        playlist.tracks.forEach((track) => {
-          console.log(track);
-          playlistItem.tracks.unshift(track.path.replace("file://", ""));
-        });
-        playlistsData.push(playlistItem);
-      });
-      localStorage.setItem("playlists", JSON.stringify(playlistsData));
+    removeSelectedTrackToPlaylist: (state, [playlistIndex, trackIndex]) => {
+      state.playlists[playlistIndex].tracks.splice(trackIndex, 1);
+      savePlaylistChanges(state.playlists);
     },
-    addPlaylist: (state, newPlaylist) => {
-      state.playlists.forEach((playlist, index) => {
-        if (playlist.name == newPlaylist.name) {
-          state.playlists.splice(index, 1);
-        }
-      });
-      state.playlists.unshift(newPlaylist);
+    changePlaylistName(state, [plIndex, newPlName]) {
+      console.log(plIndex);
+      console.log(state.playlists[plIndex]);
+      state.playlists[plIndex].name = newPlName;
+      savePlaylistChanges(state.playlists);
     },
-    updateTrack: (state, path) => {},
+    deletePlaylist: (state, index) => {
+      state.playlists.splice(index, 1);
+      savePlaylistChanges(state.playlists);
+    },
+    clearRecentsAndPlaylists: (state) => {
+      state.recentsTracks = [];
+      state.playlists = [];
+    },
     getAlbums(state, htmlData) {
       state.discoverAlbums = [];
       console.log("someyhong from albums");
@@ -292,7 +273,6 @@ export default new Vuex.Store({
       if (nextToPlay && state.currentTab != "recentTracks") {
         nextToPlay.click();
         nextToPlay.classList.remove("playingNext");
-        nextToPlay.scrollIntoView();
       } else {
         const nextTrack = document.querySelector(".playingtrack").nextSibling;
         if (nextTrack) {
@@ -305,7 +285,20 @@ export default new Vuex.Store({
   },
   modules: {},
 });
-
+function savePlaylistChanges(statePlaylists) {
+  const playlistsData = [];
+  statePlaylists.forEach((playlist) => {
+    const playlistItem = {
+      name: playlist.name,
+      tracks: [],
+    };
+    playlist.tracks.forEach((track) => {
+      playlistItem.tracks.unshift(track.path.replace("file://", ""));
+    });
+    playlistsData.push(playlistItem);
+  });
+  localStorage.setItem("playlists", JSON.stringify(playlistsData));
+}
 function removeDuplicates(myArr, prop) {
   return myArr.filter((obj, pos, arr) => {
     return arr.map((mapObj) => mapObj[prop]).indexOf(obj[prop]) === pos;

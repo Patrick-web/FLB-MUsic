@@ -1,23 +1,43 @@
 <template>
   <div class="playingPane animated faster">
+    <div v-if="!playingTrack.title" class="noMusicPlaying"></div>
     <div class="trackTags animated faster">
       <img id="coverArtTag" :src="playingTrack.cover" alt="" />
-      <h4 id="selectCoverArt">Import Cover Art</h4>
+      <h4 @click="importCover" id="selectCoverArt">Import Cover Art</h4>
       <div>
         <h4>Name</h4>
-        <p id="titleTag" contenteditable>
+        <p
+          id="titleTag"
+          class="inputElem"
+          @change="changeAlbumSearchQuery"
+          contenteditable
+        >
           {{ playingTrack.title }}
         </p>
       </div>
-      <div v-if="playingTrack.artist">
+      <div>
         <h4>Artist</h4>
-        <p contenteditable id="artistTag">{{ playingTrack.artist }}</p>
+        <p contenteditable class="inputElem" id="artistTag">
+          {{ playingTrack.artist }}
+        </p>
       </div>
       <div>
         <h4>Album</h4>
-        <p contenteditable id="albumTag">{{ playingTrack.album }}</p>
+        <p contenteditable class="inputElem" id="albumTag">
+          {{ playingTrack.album }}
+        </p>
       </div>
       <div class="possibleCovers">
+        <button @click="openCoverSearcher">
+          <h3 style="text-align:center">Open Cover Searcher📔</h3>
+        </button>
+        <br />
+        <div
+          v-if="possibleThumbnails.length == 0 && isOnline"
+          class="loadingArea"
+        >
+          <div class="loadingIndicator"></div>
+        </div>
         <img
           v-for="cover in possibleThumbnails"
           :key="cover.url"
@@ -48,6 +68,7 @@
     <div class="volumeRockerArea">
       <img src="@/assets/volume_down.svg" alt="" />
       <input
+        class="inputElem"
         @change="adjustVolume"
         v-model="volume"
         type="range"
@@ -75,7 +96,7 @@
     </div>
 
     <div v-if="playingTrack.title" class="controls">
-      <div @click="playPrev" class="iconBt">
+      <div @click="playPrev" id="prevTrackBt" class="iconBt">
         <img
           style="transform:rotate(-180deg)"
           src="@/assets/play_arrow.svg"
@@ -85,10 +106,11 @@
       <div @click="toggleFromFavourites" id="favorIcon" class="iconBt">
         <img width="18px" src="@/assets/flash-outline.png" alt="" />
       </div>
-      <div @click="determineNextTrack" class="iconBt">
+      <div id="nextTrackBt" @click="determineNextTrack" class="iconBt">
         <img src="@/assets/play_arrow.svg" alt="" />
       </div>
     </div>
+    <CoverSearcher />
     <TrackBar />
   </div>
 </template>
@@ -98,6 +120,7 @@ import TrackBar from "@/components/TrackBar.vue";
 import { mapGetters, mapActions, mapMutations } from "vuex";
 import Wave from "wave-visualizer";
 import * as gis from "g-i-s";
+import CoverSearcher from "./CoverSearcher.vue";
 const electron = window.require("electron");
 
 export default {
@@ -112,6 +135,7 @@ export default {
       possibleThumbnails: [],
       selectedCover: "",
       volume: 1,
+      isOnline: false,
     };
   },
   methods: {
@@ -139,18 +163,26 @@ export default {
     },
     showPlaylistAdder() {
       this.selectATrack();
-      document.querySelector(".PlaylistAdder").classList.add("show");
+      document.querySelector("#PlaylistAdder").classList.add("ModalShow");
     },
     selectCover(url) {
       this.selectedCover = url;
       document.querySelector("#coverArtTag").src = url;
     },
+    importCover() {
+      electron.ipcRenderer.send("importCoverArt");
+    },
+    openCoverSearcher() {
+      document.querySelector("#CoverSearcher").classList.add("ModalShow");
+    },
     enterEditMode() {
+      document.querySelector("#pauseBt img").click();
       document.querySelector(".playingPane").classList.add("editMode");
       document.querySelector("#titleTag").focus();
       document.querySelector(".trackTags").classList.add("slideInDown");
       document.querySelector(".editModeBtns").classList.add("slideInUp");
       if (navigator.onLine) {
+        this.isOnline = true;
         const noti = this.$vs.notify({
           position: "top-center",
           title: `Fetching possible cover art`,
@@ -159,6 +191,7 @@ export default {
         this.possibleThumbnails = [];
         this.searchImage(this.playingTrack.title);
       } else {
+        this.isOnline = false;
         const noti = this.$vs.notify({
           position: "top-center",
           title: `Connect to Internet to fetch possible thumbnails`,
@@ -167,6 +200,7 @@ export default {
       }
     },
     exitEditMode() {
+      document.querySelector("#pauseBt img").click();
       document
         .querySelector(".editModeBtns")
         .classList.replace("slideInUp", "slideOutDown");
@@ -194,38 +228,57 @@ export default {
         }
       });
     },
+    changeAlbumSearchQuery() {
+      console.log("Changing Search");
+    },
     toggleShuffleMode() {
       document.querySelector(".playingPane").classList.toggle("shuffleMode");
       this.toggleShuffler();
       this.shuffle = !this.shuffle;
       const state = this.shuffle ? "On" : "Off";
-      console.log("Shuffle is" + state);
-    },
-    toggleRepeatMode() {
-      document.querySelector(".playingPane").classList.toggle("repeatMode");
-      document.querySelector("audio").loop = this.repeat;
-      this.repeat = !this.repeat;
-      this.setRepeat();
-      const state = this.repeat ? "On" : "Off";
-      console.log("Repeat is" + state);
       const noti = this.$vs.notify({
         position: "top-center",
-        title: `Repeat ${this.repeat}`,
+        title: `Shuffle ${state}`,
+      });
+    },
+    toggleRepeatMode() {
+      this.repeat = !this.repeat;
+      this.setRepeat();
+      document.querySelector(".playingPane").classList.toggle("repeatMode");
+      document.querySelector("audio").loop = this.repeat;
+      const state = this.repeat ? "On" : "Off";
+      const noti = this.$vs.notify({
+        position: "top-center",
+        title: `Repeat ${state}`,
       });
     },
     saveChanges() {
-      const title = document.querySelector("#titleTag").textContent;
+      const title = document.querySelector("#titleTag").textContent.trim();
       const artist = document.querySelector("#artistTag").textContent;
       const album = document.querySelector("#albumTag").textContent;
       let cover = document.querySelector("#coverArtTag").src;
+      let tags = {};
+      if (title != this.playingTrack.title.trim()) {
+        tags["title"] = title;
+      }
+      if (artist != this.playingTrack.artist) {
+        tags["artist"] = artist;
+      }
+      if (album != this.playingTrack.album) {
+        tags["album"] = album;
+      }
+      if (cover != this.playingTrack.cover) {
+        tags.APIC = document.querySelector("#coverArtTag").src;
+      }
       const data = {
         path: this.playingTrack.path.replace("file://", ""),
-        title,
-        artist,
-        album,
-        coverArt: cover,
+        tags: tags,
       };
-      electron.ipcRenderer.send("updateTrackInfo", data);
+      console.log(Object.keys(data.tags).length);
+      if (Object.keys(data.tags).length !== 0) {
+        electron.ipcRenderer.send("updateTrackInfo", data);
+        console.log("=======sent======");
+      }
       this.exitEditMode();
     },
     toggleFromFavourites() {
@@ -269,17 +322,32 @@ export default {
         title: "An error occured while changing song info",
       });
     });
-    electron.ipcRenderer.on("YTStreamURL", (e, data) => {
-      document.querySelector("video").src = data.streamURL;
-      document.querySelector("video").play();
+    electron.ipcRenderer.on("importedCoverArt", (e, data) => {
+      document.querySelector("#coverArtTag").src = data;
     });
-    window.addEventListener("keyup", (e) => {
-      if (e.key === "ArrowRight") {
+    window.addEventListener("keydown", (e) => {
+      if (!document.activeElement.classList.contains("inputElem")) {
+        if (this.playingTrack.title) {
+          if (e.code === "Space") {
+            e.preventDefault();
+            document.querySelector("#pauseBt img").click();
+          }
+          if (e.code === "KeyN") {
+            document.querySelector("#nextTrackBt").click();
+          }
+          if (e.code === "KeyP") {
+            document.querySelector("#prevTrackBt").click();
+          }
+          if (e.code === "KeyS") {
+            document.querySelector("#search").focus();
+          }
+        }
       }
     });
   },
   components: {
     TrackBar,
+    CoverSearcher,
   },
 };
 </script>
@@ -322,6 +390,7 @@ export default {
   }
   .editModeBtns {
     display: flex;
+    z-index: 5;
   }
 }
 .playingPane {
@@ -332,6 +401,7 @@ export default {
   flex-direction: column;
   align-items: center;
   max-width: 285px;
+  min-width: 100px;
   #visualizerArea {
     position: absolute;
     width: 100%;
@@ -350,15 +420,13 @@ export default {
     width: 100%;
     overflow: hidden;
     overflow-y: scroll;
-    // display: grid;
-    // grid-template-columns: 1fr 1fr;
-    max-height: 100px;
+    max-height: 130px;
     img {
-      width: 130px;
+      width: 100%;
       cursor: pointer;
     }
     img:hover {
-      transform: scale(1.08);
+      transform: scale(0.9);
     }
   }
   #blurred {
@@ -382,6 +450,10 @@ export default {
     }
     #songName {
       font-family: roboto;
+      width: 100%;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      overflow: hidden;
     }
     #artistName {
       font-size: 0.9em;
@@ -473,7 +545,8 @@ export default {
     position: relative;
     z-index: 5;
     text-align: center;
-    transform: translateY(-150%) translateX(-50%);
+    transform: translateY(50%) translateX(-50%);
+    backdrop-filter: blur(10px);
     width: 50%;
     left: 50%;
     padding: 5px;
@@ -487,7 +560,9 @@ export default {
     background: #0062ff;
   }
   #coverArtTag {
-    width: 85%;
+    width: 230px;
+    margin-top: 10px;
+    margin-bottom: -30px;
     margin-left: 20px;
   }
   div {
@@ -537,5 +612,14 @@ export default {
   #exitEditMode {
     background: rgb(209, 1, 46);
   }
+}
+.noMusicPlaying {
+  position: absolute;
+  z-index: 4;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: black;
 }
 </style>

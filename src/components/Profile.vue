@@ -10,26 +10,36 @@
         <div class="i">Patrick Waweru</div>
       </div>
       <div class="info-group">
-        <div class="it">Twitter 🐦</div>
-        <div class="i">@PnTX10</div>
+        <div class="it">Follow Me on Twitter 🐦</div>
+        <a target="_blank" href="https://twitter.com/PnTX10" class="i"
+          >@PnTX10</a
+        >
       </div>
       <div class="info-group">
         <div class="it">Email 📬</div>
-        <div class="i">pntx200@gmail.com</div>
+        <a target="_blank" href="https://mail.google.com" class="i"
+          >pntx200@gmail.com</a
+        >
       </div>
       <div class="info-group">
         <div class="it">Github 🤖</div>
-        <div class="i">
-          https://github.com/Patrick-web
-        </div>
+        <a target="_blank" href="https://github.com/Patrick-web" class="i">
+          Patrick-web
+        </a>
       </div>
       <div class="info-group">
-        <div class="i">🦧🦧🦧🦧🦧🦧🦧🦧🦧🦧🦧🦧🦧🦧</div>
         <div class="it">
-          Don't be shy, go ahead and contact me. Am bored🤭
+          🦧 Don't be shy, go ahead and contact me. Am bored🤭
         </div>
-        <div class="i">🐒🐒🐒🐒🐒🐒🐒🐒🐒🐒🐒🐒🐒🐒</div>
       </div>
+      <button style="background:white;">
+        <a
+          target="_blank"
+          href="https://flbpodcasts.netlify.app"
+          style="color:black"
+          >Check Out FLB Podcast</a
+        >
+      </button>
     </div>
   </div>
 </template>
@@ -66,18 +76,23 @@ export default {};
   box-shadow: 0px 0px 50px black;
   transition: 0.2s cubic-bezier(0.91, 0.8, 0.54, 1.39);
   .info-group {
-    margin-bottom: 20px;
+    padding-bottom: 5px;
+    margin-bottom: 10px;
     margin-left: 10px;
     font-size: 1.2em;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.39);
     .it {
-      font-weight: 400;
-      font-size: 1em;
+      font-family: roboto-light;
+      font-weight: 300;
+      font-size: 0.9em;
     }
     .i {
+      font-size: 0.9em;
+      font-family: roboto-light;
       font-weight: 300;
     }
     .i:hover {
-      cursor: default;
+      .itcursor: default;
     }
   }
 }
@@ -99,8 +114,8 @@ export default {};
     transform: scale(1) translate(-50%, -50%);
     opacity: 1;
   }
-  #flbLogo {
-    filter: invert(100%);
+  #logo {
+    transform: rotate(-45deg);
   }
 }
 </style>

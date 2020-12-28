@@ -26,7 +26,8 @@
       <div>
         <pre>🎵🥂🎵 Merging audio Files</pre>
         <pre>🌐🔊 Streaming audio from Network URL</pre>
-        <pre>📔🖊️ A Lyrics Maker (this one am not quite sure)</pre>
+        <pre>📥📥  Download Music from Deezer 🔥🔥</pre>
+        <pre>📔🖊️  Lyrics Maker (this one am not quite sure)</pre>
         <pre>🤫 And others 🤫</pre>
       </div>
       <p>
@@ -63,9 +64,22 @@ export default {
       electron.ipcRenderer.send("importVideoForConversion");
     },
     startConversion() {
-      console.log("starting conversion");
+      const noti = this.$vs.notify({
+        position: "top-center",
+        title: `If conversion does not start, enable internet connection to download the necessary dependancy`,
+        color: "warning",
+      });
       this.converting = true;
       electron.ipcRenderer.send("startConversionToMp3");
+    },
+    mounted() {
+      if (navigator.onLine) {
+        electron.ipcRenderer.send("downloadBinaries");
+      } else {
+        window.addEventListener("online", () =>
+          electron.ipcRenderer.send("downloadBinaries")
+        );
+      }
     },
   },
   mounted() {

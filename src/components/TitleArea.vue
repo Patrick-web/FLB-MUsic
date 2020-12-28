@@ -93,6 +93,8 @@ export default {
   margin-bottom: 20px;
   margin-top: 20px;
   width: 100%;
+  position: relative;
+  z-index: 23;
 }
 .searchBar {
   position: relative;

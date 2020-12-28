@@ -93,14 +93,13 @@ export default {
       e.currentTarget.classList.add("showOptions");
     },
     showPlaylistAdder() {
-      document.querySelector(".PlaylistAdder").classList.add("show");
+      document.querySelector("#PlaylistAdder").classList.add("ModalShow");
     },
     removeFromPlaylist(e) {
       const playlistName = e.target.parentElement.parentElement.parentElement.parentElement.querySelector(
         ".titleArea"
       ).textContent;
-      console.log(playlistName);
-      this.removeSelectedTrackToPlaylist([playlistName, this.trackIndex]);
+      this.removeSelectedTrackToPlaylist([this.playlistIndex, this.trackIndex]);
       const n2 = this.$vs.notify({
         position: "top-center",
         title: `Track Removed from ${playlistName} playlist`,
@@ -135,15 +134,25 @@ export default {
     playTrack(e) {
       document.querySelector("#search").value = "";
       document.querySelector(".playingPane").classList.remove("editMode");
-
-      if (document.querySelector(".playingtrack"))
+      if (document.querySelector(".ModalShow")) {
+        document.querySelector(".ModalShow").classList.remove("ModalShow");
+      }
+      this.setEditModeValues();
+      if (document.querySelector(".playingtrack")) {
         document
           .querySelector(".playingtrack")
           .classList.remove("playingtrack");
+      }
       const track = e.currentTarget;
       track.classList.add("playingtrack");
       this.setPlayingTrack(this.trackInfo);
       this.addToRecents(this.trackInfo);
+    },
+    setEditModeValues() {
+      document.querySelector("#titleTag").textContent = this.title;
+      document.querySelector("#artistTag").textContent = this.artist;
+      document.querySelector("#albumTag").textContent = this.album;
+      document.querySelector("#coverArtTag").src = this.cover;
     },
     queueTrack(e) {
       document.querySelector(".queueTabIcon").click();
@@ -170,17 +179,20 @@ export default {
     album: String,
     path: String,
     trackIndex: Number,
+    playlistIndex: Number,
   },
 };
 </script>
 
 <style lang="scss">
 .disable__options {
-  .options {
-    display: none;
-  }
-  .delIcon {
-    display: block !important;
+  .TrackCard {
+    .options {
+      display: none;
+    }
+    .delIcon {
+      display: block !important;
+    }
   }
 }
 .brockentrack {
@@ -195,7 +207,6 @@ export default {
 .playingtrack {
   background: #0062ff !important;
   position: relative;
-  z-index: 4;
   margin-top: -2px;
   border: none;
   box-shadow: 0px -4px 10px rgba(0, 0, 0, 0.644);
@@ -317,6 +328,28 @@ export default {
     transition: 0.4s ease;
     cursor: pointer;
     z-index: 4;
+  }
+}
+.compactMode {
+  .TrackCard {
+    display: flex;
+    align-items: center;
+    .cover {
+      width: 50px;
+      transform: scale(0.9);
+      transition: 0.2s ease;
+      justify-self: center;
+      align-self: center;
+    }
+    p {
+      font-size: 1em;
+    }
+    .grid2 {
+      display: none;
+    }
+    .delIcon {
+      display: none !important;
+    }
   }
 }
 .TrackCard:hover {

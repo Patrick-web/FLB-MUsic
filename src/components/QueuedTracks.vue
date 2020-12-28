@@ -28,6 +28,14 @@ export default {
   components: {
     TrackCard,
   },
+  methods: {
+    moveDown(e) {
+      console.log(e);
+    },
+    move(e) {
+      console.log(e);
+    },
+  },
   computed: {
     ...mapGetters(["queuedTracks"]),
   },
