@@ -35,7 +35,7 @@ export default {
       var myHeaders = new Headers();
       myHeaders.append(
         "Authorization",
-        "Bearer AAAAAAAAAAAAAAAAAAAAAB3%2FKwEAAAAAAm7Q65EJ8uA%2BcoHfnU1YGbcbCQY%3DqKsH5R9YleM2TObwLlkSYag9JTxiGftR7dWQStU5iQqWe16jCP"
+        "Bearer <insert bearer token from twitter>"
       );
       myHeaders.append(
         "Cookie",
