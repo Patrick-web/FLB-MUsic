@@ -39,6 +39,36 @@
           </template>
         </vs-switch>
       </div>
+      <div
+        @click="toggleDeezerDarkMode"
+        id="deezerDarkModeToggle"
+        class="setting"
+      >
+        <p>Force Deezer Dark Mode</p>
+        <vs-switch disabled="true" v-model="forceDeezerDarkMode">
+          <template #off>
+            Off
+          </template>
+          <template #on>
+            On
+          </template>
+        </vs-switch>
+      </div>
+      <div
+        @click="togglePerfomanceMode"
+        id="perfomanceModeToggle"
+        class="setting"
+      >
+        <p>Perfomance Mode</p>
+        <vs-switch disabled="true" v-model="perfomanceMode">
+          <template #off>
+            Off
+          </template>
+          <template #on>
+            On
+          </template>
+        </vs-switch>
+      </div>
     </div>
     <div class="shortcuts">
       <h3>Shortcuts</h3>
@@ -63,6 +93,9 @@
         <pre>Ctrl + R</pre>
       </div>
     </div>
+    <button @click="clearAddedTracks" class="dangerBt">
+      <h4>Clear Cached Tracks</h4>
+    </button>
   </div>
 </template>
 
@@ -73,6 +106,8 @@ export default {
       compactMode: false,
       fakeLightMode: false,
       visualizer: true,
+      forceDeezerDarkMode: false,
+      perfomanceMode: false,
     };
   },
   methods: {
@@ -91,6 +126,39 @@ export default {
       document.querySelector(".MainGrid").classList.toggle("visualizerOff");
       localStorage.setItem("visualizer", this.visualizer);
     },
+    toggleDeezerDarkMode() {
+      this.forceDeezerDarkMode = !this.forceDeezerDarkMode;
+      localStorage.setItem("forceDeezerDarkMode", this.forceDeezerDarkMode);
+      const noti = this.$vs.notify({
+        position: "top-center",
+        title: "Reload Deezer to apply this change",
+      });
+    },
+    togglePerfomanceMode() {
+      this.perfomanceMode = !this.perfomanceMode;
+      localStorage.setItem("perfomanceMode", this.perfomanceMode);
+      if (this.perfomanceMode) {
+        const noti = this.$vs.notify({
+          position: "top-center",
+          color: "warning",
+          title: "No streaming and No visualizer to save on resources",
+        });
+      } else {
+        const noti = this.$vs.notify({
+          position: "top-center",
+          title: "Exiting Perfomance Mode",
+        });
+      }
+    },
+    clearAddedTracks() {
+      localStorage.removeItem("addedTracks");
+      const noti = this.$vs.notify({
+        position: "top-center",
+        color: "warning",
+        title: "Added tracks have been cleared",
+        text: "Reload to view changes",
+      });
+    },
   },
   mounted() {
     console.clear();
@@ -99,6 +167,13 @@ export default {
     }
     if (JSON.parse(localStorage.getItem("fakeLightMode")) == true) {
       document.querySelector("#fakeLightModeToggle").click();
+    }
+    if (JSON.parse(localStorage.getItem("forceDeezerDarkMode")) == true) {
+      document.querySelector("#deezerDarkModeToggle").click();
+    }
+    if (JSON.parse(localStorage.getItem("perfomanceMode")) == true) {
+      document.querySelector("#deezerDarkModeToggle").click();
+      document.querySelector("#perfomanceModeToggle").click();
     }
     if (JSON.parse(localStorage.getItem("visualizer")) == false) {
       document.querySelector(".MainGrid").classList.add("visualizerOff");
@@ -118,7 +193,7 @@ export default {
 }
 .Settings {
   position: absolute;
-  z-index: 10;
+  z-index: 50;
   width: 300px;
   width: 0;
   max-height: 0;
