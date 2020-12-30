@@ -166,9 +166,9 @@ ipcMain.on("updateTrackInfo", async (e, data) => {
   let currentFilePath = data.path;
   let success = NodeID3.update(data.tags, currentFilePath);
   console.log("Tag write is " + success);
-  win.webContents.send("successMsg", "Tags successfuly changed");
-  win.webContents.send("removePlayingTrack");
   if (success) {
+    win.webContents.send("successMsg", "Tags successfuly changed");
+    win.webContents.send("removePlayingTrack");
     if (data.tags.title) {
       const folder = currentFilePath.match(/(.*)[\/\\]/)[1] || "";
       const mimeType = `.${currentFilePath.split(".").pop()}`;
@@ -178,8 +178,18 @@ ipcMain.on("updateTrackInfo", async (e, data) => {
       FS.rename(data.path, newFilePath, () => console.log("rename successful"));
       setTimeout(() => {
         parseAudioFile(newFilePath, "audioWithCover", false);
+        setTimeout(() => {
+          win.webContents.send("playFirstTrack");
+        }, 500);
       }, 1000);
       win.webContents.send(`successMsg","File Renamed to ${newFileName}`);
+    } else {
+      setTimeout(() => {
+        parseAudioFile(currentFilePath, "audioWithCover", false);
+        setTimeout(() => {
+          win.webContents.send("playFirstTrack");
+        }, 500);
+      }, 1000);
     }
   } else {
     win.webContents.send("errorMsg", "Error occured in changing the tags");
@@ -336,6 +346,7 @@ ipcMain.on("processDroppedFiles", (e, filePaths) => {
 });
 
 ipcMain.on("loadMusicFolder", () => loadFromAFolder(MUSICFOLDER));
+ipcMain.on("downloadBinaries", () => getBinaries());
 
 function loadFromAFolder(folderPath) {
   FS.readdir(folderPath, (err, files) => {
@@ -455,6 +466,11 @@ async function parseAudioFile(
     });
   });
 }
+ipcMain.on("parseAddedTracks", (e, addedTracks) => {
+  addedTracks.forEach((track) => {
+    parseAudioFile(track, "audioWithCover", false);
+  });
+});
 ipcMain.on("parsePlaylist", async (e, playlists) => {
   const playlistsToSend = [];
   await playlists.forEach(async (playlist) => {
@@ -504,8 +520,8 @@ function secondsToTime(sec) {
 }
 
 function getBinaries() {
-  console.log("=============");
   var platform = ffbinaries.detectPlatform();
+  if (FS.existsSync(ffmpegPath)) return;
   win.webContents.send("successMsg", "Downloading necessary dependanicies");
   return ffbinaries.downloadFiles(
     ["ffmpeg", "ffprobe"],
