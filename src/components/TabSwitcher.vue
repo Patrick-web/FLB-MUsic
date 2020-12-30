@@ -34,6 +34,10 @@ export default {
           document.querySelector(`#${pos}`).classList.add("activeTab");
           tabsWrapper.style.transform = "translateX(0%)";
           this.switchTab(pos);
+          //resume playing if coming from streamer
+          if (document.querySelector(".playingtrack")) {
+            document.querySelector(".playIcon").click();
+          }
           break;
         case "playlists":
           indicator.style.left = "17%";
@@ -89,6 +93,9 @@ export default {
               });
             }
           }
+          //Pause Offline Music
+          if (document.querySelector(".pauseIcon"))
+            document.querySelector(".pauseIcon").click();
           break;
 
         default:
