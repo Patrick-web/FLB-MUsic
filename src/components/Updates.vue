@@ -104,7 +104,6 @@ export default {
   padding-top: 5px;
   border-radius: 20px;
   box-shadow: 0px 0px 50px black;
-  overflow: hidden;
   overflow-y: scroll;
   h2 {
     text-align: center;

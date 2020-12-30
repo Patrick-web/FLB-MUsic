@@ -74,12 +74,7 @@ export default {
       document.querySelector("#addedTracks").click();
     },
   },
-  mounted() {
-    if (localStorage.getItem("addedTracks")) {
-      const addedTracks = JSON.parse(localStorage.getItem("addedTracks"));
-      this.loadPreviouslyAddedTracks(addedTracks);
-    }
-  },
+  mounted() {},
 };
 </script>
 

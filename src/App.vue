@@ -282,7 +282,7 @@ body {
   position: relative;
   .tabsWrapper {
     width: 600%;
-    height: 50vh;
+    height: 83vh;
     display: grid;
     grid-template-columns: 1fr 1fr 1fr 1fr 1fr 1fr;
     transition: 0.2s ease-in-out;
@@ -330,102 +330,6 @@ body {
   overflow: hidden;
   overflow-y: scroll;
   padding-top: 10px;
-}
-.addedTracksTab {
-  padding-top: 0px;
-  position: relative;
-  .showHiddenActions {
-    background: #0062ff !important;
-    border-radius: 12px !important;
-    .hiddenActions {
-      display: block !important;
-    }
-  }
-  .trackActions {
-    position: absolute;
-    background: black;
-    top: 0;
-    left: 0;
-    width: 100%;
-    z-index: 10;
-    padding: 10px;
-    padding-right: 15px;
-    padding-left: 15px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    .hiddenActions {
-      display: none;
-      box-shadow: 0px 0px 50px black;
-    }
-    div {
-      background: #141414;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 10px;
-      border-radius: 40px;
-      cursor: pointer;
-      position: relative;
-      .sortMode {
-        position: absolute;
-        bottom: -140px;
-        left: -10px;
-        background: #141414;
-        padding: 8px;
-        border-radius: 40px;
-        border: 2px solid #0062ff00;
-        p {
-          display: none;
-        }
-        #desc {
-          display: none;
-        }
-        #asc {
-          display: block;
-        }
-      }
-      .byDesc {
-        #desc {
-          display: block !important;
-        }
-        #asc {
-          display: none !important;
-        }
-      }
-      .sortMode:hover {
-        border: 2px solid #0062ff;
-      }
-      .sortParams {
-        bottom: -90px;
-        border-radius: 20px;
-        left: -10px;
-        position: absolute;
-        width: 100px;
-        background: #141414;
-        overflow: hidden;
-        p {
-          padding: 10px;
-        }
-        p:hover {
-          background: #0062ff41;
-        }
-        .selectedParam {
-          background: #0062ff;
-        }
-        .selectedParam:hover {
-          background: #0062ff;
-        }
-      }
-      img {
-        margin-left: 10px;
-        width: 20px;
-      }
-    }
-    div:hover {
-      background: #0062ff;
-    }
-  }
 }
 .expanded {
   .body {

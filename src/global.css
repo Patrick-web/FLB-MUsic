@@ -52,6 +52,9 @@ button:hover {
   border-radius: 10px;
   background: #0062ff;
 }
+.dangerBt:hover {
+  background: #ff0015;
+}
 .vs-notifications {
   text-align: center !important;
 }

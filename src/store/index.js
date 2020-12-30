@@ -49,25 +49,21 @@ export default new Vuex.Store({
     toggleAutoplay: (state) => (state.autoplay = !state.autoplay),
     addToQueue: (state, track) => {
       state.queue.push(track);
+      state.queue = removeDuplicates(state.queue, "path");
     },
     removeFromQueue(state, index) {
       console.log(index);
       state.queue.splice(index, 1);
     },
     addTrack: (state, track) => {
-      let alreadyAdded = false;
-      state.addedTracks.forEach((addedTrack) => {
-        if (addedTrack.path == track.path) {
-          alreadyAdded = true;
-          console.log("Already added");
-          return;
-        }
-      });
-      if (!alreadyAdded) state.addedTracks.unshift(track);
-      localStorage.setItem("addedTracks", JSON.stringify(state.addedTracks));
-    },
-    loadPreviouslyAddedTracks: (state, tracks) => {
-      state.addedTracks = [...state.addedTracks, ...tracks];
+      state.addedTracks.unshift(track);
+      state.addedTracks = removeDuplicates(state.addedTracks, "path");
+      localStorage.setItem(
+        "addedTracks",
+        JSON.stringify(
+          state.addedTracks.map((track) => track.path.replace("file://", ""))
+        )
+      );
     },
     removeFromAddedTracks: (state, index) => {
       state.addedTracks.splice(index, 1);
