@@ -10,10 +10,7 @@
         <img class="expandIcon" src="@/assets/arrowDown.svg" alt="" />
       </div>
       <div class="body">
-        <transition-group
-          enter-active-class="animated slideInLeft faster"
-          leave-active-class="animated slideOutRight faster"
-        >
+        <transition-group>
           <TrackCard
             :cover="track.cover"
             :album="track.album"

@@ -33,6 +33,14 @@ export default new Vuex.Store({
     discoverAlbums: [],
     discoverTracks: [],
     discoverArtists: [],
+    settings: {
+      perfomanceMode: false,
+      forceDeezerDarkMode: false,
+      visualizer: true,
+      compactMode: false,
+      fakeLightMode: false,
+    },
+    bulkSelected: [],
   },
   mutations: {
     switchTab: (state, tab) => {
@@ -67,6 +75,7 @@ export default new Vuex.Store({
     },
     removeFromAddedTracks: (state, index) => {
       state.addedTracks.splice(index, 1);
+      console.log("Removing " + index);
     },
     sortTracks: (state, param) => {
       function compare(a, b) {
@@ -242,6 +251,24 @@ export default new Vuex.Store({
         }
       });
     },
+    setSetting(state, [targetSetting, settingState]) {
+      state.settings[`${targetSetting}`] = settingState;
+    },
+    bulkSelect: (state, track) => {
+      let wasAlreadySelected = false;
+      state.bulkSelected.forEach((bulkSelectedTrack, index) => {
+        if (bulkSelectedTrack.path == track.path) {
+          state.bulkSelected.splice(index, 1);
+          wasAlreadySelected = true;
+        }
+      });
+      if (!wasAlreadySelected) {
+        state.bulkSelected.unshift(track);
+      }
+    },
+    clearBulkSelect: (state) => {
+      state.bulkSelected.filter = [];
+    },
   },
   getters: {
     queuedTracks: (state) => state.queue,
@@ -257,6 +284,8 @@ export default new Vuex.Store({
     discoverArtists: (state) => state.discoverArtists,
     discoverAlbums: (state) => state.discoverAlbums,
     discoverTracks: (state) => state.discoverTracks,
+    settings: (state) => state.settings,
+    bulkSelected: (state) => state.bulkSelected,
   },
   actions: {
     determineNextTrack(state) {

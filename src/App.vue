@@ -7,6 +7,12 @@
       src="@/assets/FLBMusicLogo.svg"
       alt=""
     />
+    <transition
+      enter-active-class="animated slideInDown"
+      leave-active-class="animated slideOutUp"
+    >
+      <ProgressBar />
+    </transition>
     <Profile />
     <Updates />
     <PlaylistAdder />
@@ -38,6 +44,12 @@
         <DiscoverTab />
       </div>
       <Gems />
+      <transition
+        enter-active-class="animated faster slideInDown"
+        leave-active-class="animated extrafaster slideOutUp"
+      >
+        <FxModeActions />
+      </transition>
     </div>
     <div class="playingPaneArea">
       <div v-if="addedTracks.length !== 0" class="tabber">
@@ -71,8 +83,9 @@ import RecentsTab from "@/components/Tabs/RecentsTab.vue";
 import AlbumsTab from "@/components/Tabs/AlbumsTab.vue";
 import ArtistsTab from "@/components/Tabs/ArtistsTab.vue";
 import PlaylistsTab from "@/components/Tabs/PlaylistsTab.vue";
-import DiscoverTab from "./components/Tabs/DiscoverTab.vue";
-
+import DiscoverTab from "@/components/Tabs/DiscoverTab.vue";
+import FxModeActions from "@/components/FXModeActions";
+import ProgressBar from "@/components/ProgressBar";
 const electron = window.require("electron");
 
 export default {
@@ -94,6 +107,8 @@ export default {
     ArtistsTab,
     PlaylistsTab,
     DiscoverTab,
+    FxModeActions,
+    ProgressBar,
   },
   computed: {
     ...mapGetters([
@@ -286,6 +301,17 @@ body {
     display: grid;
     grid-template-columns: 1fr 1fr 1fr 1fr 1fr 1fr;
     transition: 0.2s ease-in-out;
+  }
+}
+@media (max-width: 900px) {
+  .MainGrid {
+    grid-template-columns: 4fr 1fr;
+  }
+  .featuresSwitcherArea {
+    display: none !important;
+  }
+  #logo {
+    display: none !important;
   }
 }
 .currentFeatureIsGems {

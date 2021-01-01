@@ -165,4 +165,9 @@ input::placeholder {
   font-weight: 300;
   font-size: 1em;
 }
+@media (max-width: 900px) {
+  .Titlebar {
+    display: none;
+  }
+}
 </style>

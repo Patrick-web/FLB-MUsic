@@ -1,8 +1,9 @@
 <template>
   <div class="tab addedTracksTab">
     <div v-if="addedTracks.length > 1" class="trackActions">
-      <div @click="soon('Am still working on this. Oh and its gonna be lit🔥')">
-        <p>FX Mode</p>
+      <div class="fxModeToggle" @click="toggleFxMode()">
+        <p id="enterFxMode">FX Mode</p>
+        <p id="exitFxMode">Exit FX Mode</p>
         <img style="max-width:18px" src="@/assets/star_border.svg" alt="" />
       </div>
       <SortWidget />
@@ -21,10 +22,7 @@
         Just load my Music Folder
       </button>
     </div>
-    <transition-group
-      enter-active-class="animated slideInLeft extrafaster"
-      leave-active-class="animated slideOutRight extrafaster"
-    >
+    <transition-group>
       <TrackCard
         :cover="track.cover"
         :album="track.album"
@@ -54,7 +52,7 @@ export default {
     ...mapGetters(["addedTracks"]),
   },
   methods: {
-    ...mapMutations(["addTrack", "removeFromAddedTracks"]),
+    ...mapMutations(["addTrack", "removeFromAddedTracks", "clearBulkSelect"]),
     loadMusicFolder() {
       electron.ipcRenderer.send("loadMusicFolder");
       document.querySelector("#loadMusicFolderBt").style.display = "none";
@@ -63,12 +61,16 @@ export default {
         title: "Loading your music folder...",
       });
     },
-    soon(msg) {
-      const noti = this.$vs.notify({
-        color: "success",
-        position: "top-center",
-        title: msg,
-      });
+    toggleFxMode() {
+      document.querySelector(".addedTracksTab").classList.toggle("fxMode");
+      if (
+        !document.querySelector(".addedTracksTab").classList.contains("fxMode")
+      ) {
+        this.clearBulkSelect();
+        document
+          .querySelectorAll(".bulkSelected")
+          .forEach((track) => track.classList.remove("bulkSelected"));
+      }
     },
   },
   mounted() {
@@ -106,6 +108,17 @@ export default {
 </script>
 
 <style lang="scss">
+.fxMode {
+  .fxModeToggle {
+    background: rgb(255, 0, 76) !important;
+  }
+  #enterFxMode {
+    display: none !important;
+  }
+  #exitFxMode {
+    display: block !important;
+  }
+}
 .addedTracksTab {
   padding-top: 0px;
   position: relative;
@@ -132,6 +145,12 @@ export default {
     .hiddenActions {
       display: none;
       box-shadow: 0px 0px 50px black;
+    }
+    #enterFxMode {
+      display: block;
+    }
+    #exitFxMode {
+      display: none;
     }
     div {
       background: #141414;
@@ -200,6 +219,14 @@ export default {
     div:hover {
       background: #0062ff;
     }
+  }
+}
+@media (max-width: 900px) {
+  .addedTracksTab {
+    height: 100vh !important;
+  }
+  .trackActions {
+    display: none !important;
   }
 }
 </style>

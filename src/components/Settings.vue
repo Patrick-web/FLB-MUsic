@@ -100,6 +100,8 @@
 </template>
 
 <script>
+import { mapMutations } from "vuex";
+import Wave from "wave-visualizer";
 export default {
   data() {
     return {
@@ -111,20 +113,29 @@ export default {
     };
   },
   methods: {
+    ...mapMutations(["setSetting"]),
     toggleFakeLightMode() {
       this.fakeLightMode = !this.fakeLightMode;
       document.querySelector("html").classList.toggle("fakeLightMode");
       localStorage.setItem("fakeLightMode", this.fakeLightMode);
+      this.setSetting(["fakeLightMode", this.fakeLightMode]);
     },
     toggleCompactMode() {
       this.compactMode = !this.compactMode;
       document.querySelector(".MainGrid").classList.toggle("compactMode");
       localStorage.setItem("compactMode", this.compactMode);
+      this.setSetting(["compactMode", this.compactMode]);
     },
     toggleVisualizer() {
       this.visualizer = !this.visualizer;
-      document.querySelector(".MainGrid").classList.toggle("visualizerOff");
       localStorage.setItem("visualizer", this.visualizer);
+      this.setSetting(["visualizer", this.visualizer]);
+      if (this.visualizer) {
+        const wave = new Wave();
+        wave.fromElement("audioTag", "visualizerArea", {
+          colors: ["white"],
+        });
+      }
     },
     toggleDeezerDarkMode() {
       this.forceDeezerDarkMode = !this.forceDeezerDarkMode;
@@ -133,6 +144,7 @@ export default {
         position: "top-center",
         title: "Reload Deezer to apply this change",
       });
+      this.setSetting(["forceDeezerDarkMode", this.forceDeezerDarkMode]);
     },
     togglePerfomanceMode() {
       this.perfomanceMode = !this.perfomanceMode;
@@ -143,12 +155,15 @@ export default {
           color: "warning",
           title: "No streaming and No visualizer to save on resources",
         });
+        //if perf mode is on then turn of visualizer
+        (this.visualizer = false), this.setSetting(["visualizer", false]);
       } else {
         const noti = this.$vs.notify({
           position: "top-center",
           title: "Exiting Perfomance Mode",
         });
       }
+      this.setSetting(["perfomanceMode", this.perfomanceMode]);
     },
     clearAddedTracks() {
       localStorage.removeItem("addedTracks");
@@ -171,13 +186,16 @@ export default {
     if (JSON.parse(localStorage.getItem("forceDeezerDarkMode")) == true) {
       document.querySelector("#deezerDarkModeToggle").click();
     }
-    if (JSON.parse(localStorage.getItem("perfomanceMode")) == true) {
-      document.querySelector("#deezerDarkModeToggle").click();
-      document.querySelector("#perfomanceModeToggle").click();
+    if (JSON.parse(localStorage.getItem("visualizer")) == true) {
+      (this.visualizer = true), this.setSetting(["visualizer", true]);
+    } else {
+      (this.visualizer = false), this.setSetting(["visualizer", false]);
     }
-    if (JSON.parse(localStorage.getItem("visualizer")) == false) {
-      document.querySelector(".MainGrid").classList.add("visualizerOff");
-      this.visualizer = false;
+    if (JSON.parse(localStorage.getItem("perfomanceMode")) == true) {
+      (this.perfomanceMode = true), this.setSetting(["perfomanceMode", true]);
+      (this.visualizer = false), this.setSetting(["visualizer", false]);
+    } else {
+      (this.perfomanceMode = false), this.setSetting(["perfomanceMode", false]);
     }
   },
 };

@@ -1,9 +1,6 @@
 <template>
   <div class="tab recentsTab">
-    <transition-group
-      enter-active-class="animated slideInLeft faster"
-      leave-active-class="animated slideOutRight faster"
-    >
+    <transition-group>
       <TrackCard
         :cover="track.cover"
         :album="track.album"
@@ -44,6 +41,12 @@ export default {
       this.addToRecents(track);
     });
     electron.ipcRenderer.on("removePlayingTrack", (event, track) => {
+      this.clearRecentsAndPlaylists();
+      setTimeout(() => {
+        this.loadRecentsFromDB(track);
+      }, 100);
+    });
+    electron.ipcRenderer.on("deleteComplete", (event, track) => {
       this.clearRecentsAndPlaylists();
       setTimeout(() => {
         this.loadRecentsFromDB(track);

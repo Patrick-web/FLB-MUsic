@@ -5,10 +5,6 @@
       <p id="selectedVideo">
         {{ videoToConvert }}
       </p>
-      <div v-if="converting" class="progressArea">
-        <div id="conversionProgress"></div>
-        <p>{{ percetageProgress }}%</p>
-      </div>
       <button @click="importVideo">
         <h2>Import Video</h2>
       </button>
@@ -54,8 +50,6 @@ export default {
   data() {
     return {
       videoToConvert: "No Video Imported  📽",
-      converting: false,
-      percetageProgress: 0,
     };
   },
   components: {},
@@ -64,13 +58,11 @@ export default {
       electron.ipcRenderer.send("importVideoForConversion");
     },
     startConversion() {
-      const noti = this.$vs.notify({
-        position: "top-center",
-        title: `If conversion does not start, enable internet connection to download the necessary dependancy`,
-        color: "warning",
+      electron.ipcRenderer.send("convertFile", {
+        path: this.videoToConvert.replace("file://", ""),
+        outputFileType: "mp3",
       });
-      this.converting = true;
-      electron.ipcRenderer.send("startConversionToMp3");
+      document.querySelector("#playerFeaturebtn").click();
     },
     mounted() {
       if (navigator.onLine) {

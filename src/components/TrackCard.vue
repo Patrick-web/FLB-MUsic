@@ -5,6 +5,7 @@
     :id="trackIndex"
     class="TrackCard"
   >
+    <div @click.stop="bulkSelectTrack($event)" class="fxSelectBt"></div>
     <img
       @click.stop="removeFromPlaylist($event)"
       class="delIcon"
@@ -84,6 +85,7 @@ export default {
       "addSelectedTrackToPlaylist",
       "removeSelectedTrackToPlaylist",
       "removeFromQueue",
+      "bulkSelect",
     ]),
     showOptions(e) {
       e.preventDefault();
@@ -133,7 +135,8 @@ export default {
     },
     playTrack(e) {
       document.querySelector("#search").value = "";
-      document.querySelector(".playingPane").classList.remove("editMode");
+      if (document.querySelector(".playingPane"))
+        document.querySelector(".playingPane").classList.remove("editMode");
       if (document.querySelector(".ModalShow")) {
         document.querySelector(".ModalShow").classList.remove("ModalShow");
       }
@@ -149,10 +152,12 @@ export default {
       this.addToRecents(this.trackInfo);
     },
     setEditModeValues() {
-      document.querySelector("#titleTag").textContent = this.title;
-      document.querySelector("#artistTag").textContent = this.artist;
-      document.querySelector("#albumTag").textContent = this.album;
-      document.querySelector("#coverArtTag").src = this.cover;
+      if (document.querySelector("#titleTag")) {
+        document.querySelector("#titleTag").textContent = this.title;
+        document.querySelector("#artistTag").textContent = this.artist;
+        document.querySelector("#albumTag").textContent = this.album;
+        document.querySelector("#coverArtTag").src = this.cover;
+      }
     },
     queueTrack(e) {
       document.querySelector(".queueTabIcon").click();
@@ -169,6 +174,10 @@ export default {
     },
     hideOptions(currentElement) {
       currentElement.classList.remove("showOptions");
+    },
+    bulkSelectTrack(e) {
+      e.currentTarget.parentElement.classList.toggle("bulkSelected");
+      this.bulkSelect(this.trackInfo);
     },
   },
   props: {
@@ -203,6 +212,38 @@ export default {
   }
   opacity: 0.6;
   pointer-events: none;
+}
+.fxMode {
+  .TrackCard {
+    margin-left: 30px;
+    .fxSelectBt {
+      opacity: 1;
+    }
+  }
+  .TrackCard:hover {
+    cursor: default;
+    .info {
+      padding-left: 0px;
+    }
+    .cover {
+      transform: scale(0.9) translate(0px, 0px);
+      box-shadow: -4px 4px 15px rgba(0, 0, 0, 0.712);
+    }
+    .fxSelectBt {
+      border: 2px solid#0062ff;
+      border-radius: 10px;
+      cursor: pointer;
+    }
+  }
+}
+.bulkSelected {
+  .fxSelectBt {
+    border-radius: 10px;
+    border: none !important;
+    border-bottom: 2px solid#ffffff !important;
+    border-top: 2px solid#ffffff !important;
+    background: #0062ff !important;
+  }
 }
 .playingtrack {
   background: #0062ff !important;
@@ -275,6 +316,18 @@ export default {
   cursor: pointer;
   transition: 0.2s ease;
   font-family: roboto-light;
+  .fxSelectBt {
+    position: absolute;
+    top: 50%;
+    left: -28px;
+    transform: translateY(-50%);
+    z-index: 4;
+    background: black;
+    border: 1px solid rgba(255, 255, 255, 0.733);
+    width: 20px;
+    height: 20px;
+    opacity: 0;
+  }
   .cover {
     width: 100px;
     transition: 0.2s ease;

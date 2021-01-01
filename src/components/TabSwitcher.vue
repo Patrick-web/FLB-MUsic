@@ -26,7 +26,14 @@ export default {
     moveIndicator(pos) {
       const indicator = document.querySelector(".indicator");
       const tabsWrapper = document.querySelector(".tabsWrapper");
-      document.querySelector(".MainGrid").classList.remove("tabIsDiscover");
+      if (
+        document.querySelector(".MainGrid").classList.contains("tabIsDiscover")
+      ) {
+        document.querySelector(".MainGrid").classList.remove("tabIsDiscover");
+        if (document.querySelector(".playingtrack")) {
+          document.querySelector(".playIcon").click();
+        }
+      }
       switch (pos) {
         case "addedTracks":
           indicator.style.left = "0%";
@@ -35,9 +42,6 @@ export default {
           tabsWrapper.style.transform = "translateX(0%)";
           this.switchTab(pos);
           //resume playing if coming from streamer
-          if (document.querySelector(".playingtrack")) {
-            document.querySelector(".playIcon").click();
-          }
           break;
         case "playlists":
           indicator.style.left = "17%";
@@ -79,8 +83,8 @@ export default {
           document.querySelector(".MainGrid").classList.add("tabIsDiscover");
           if (!navigator.onLine) {
             const noti = this.$vs.notify({
-              position: "top-center",
-              title: `You can't stream without internet, can you?`,
+              position: "top-right",
+              title: `Streaming requires internet connection?`,
               color: "danger",
             });
           } else {
@@ -147,6 +151,11 @@ export default {
     background: #0062ff;
     transform-origin: center;
     transition: 0.2s ease-in-out;
+  }
+}
+@media (max-width: 900px) {
+  .Tabswitcher {
+    display: none;
   }
 }
 </style>

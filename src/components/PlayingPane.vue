@@ -64,7 +64,7 @@
       <p @click="exitEditMode" id="exitEditMode">Exit Edit Mode</p>
     </div>
 
-    <canvas id="visualizerArea"></canvas>
+    <canvas v-if="settings.visualizer" id="visualizerArea"></canvas>
     <div class="volumeRockerArea">
       <img src="@/assets/volume_down.svg" alt="" />
       <input
@@ -125,7 +125,7 @@ const electron = window.require("electron");
 
 export default {
   computed: {
-    ...mapGetters(["playingTrack", "indexInFavorites"]),
+    ...mapGetters(["playingTrack", "indexInFavorites", "settings"]),
   },
   data() {
     return {
@@ -621,5 +621,24 @@ export default {
   width: 100%;
   height: 100%;
   background: black;
+}
+@media (max-width: 900px) {
+  .playingPane {
+    #cover {
+      width: 100px;
+    }
+  }
+  .volumeRockerArea {
+    display: none;
+  }
+  .editModeBtns {
+    display: none;
+  }
+  .p_options {
+    display: none !important;
+  }
+  #CoverSearcher {
+    display: none;
+  }
 }
 </style>

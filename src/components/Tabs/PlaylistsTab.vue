@@ -39,10 +39,7 @@
           <button v-if="newPlName" @click="editPlaylist(plIndex)">Save</button>
           <button @click="togglePlaylistEditor">Cancel</button>
         </div>
-        <transition-group
-          enter-active-class="animated slideInLeft faster"
-          leave-active-class="animated slideOutRight faster"
-        >
+        <transition-group>
           <TrackCard
             :cover="track.cover"
             :album="track.album"
@@ -148,6 +145,12 @@ export default {
       this.addPlaylist(playlists);
     });
     electron.ipcRenderer.on("removePlayingTrack", (event, track) => {
+      this.clearRecentsAndPlaylists();
+      setTimeout(() => {
+        this.loadPlaylistsFromDB(track);
+      }, 100);
+    });
+    electron.ipcRenderer.on("deleteComplete", (event, track) => {
       this.clearRecentsAndPlaylists();
       setTimeout(() => {
         this.loadPlaylistsFromDB(track);

@@ -25,6 +25,16 @@ const ffprobePath = PATH.join(APPDATAFOLDER, "ffprobe");
 ffmpeg.setFfmpegPath(ffmpegPath);
 ffmpeg.setFfprobePath(ffprobePath);
 
+const CONVERTEDFILESDIR = PATH.join(MUSICFOLDER, "Converted");
+const MERGEDFILESDIR = PATH.join(MUSICFOLDER, "Merged");
+
+if (!FS.existsSync(CONVERTEDFILESDIR)) {
+  FS.mkdirSync(CONVERTEDFILESDIR);
+}
+if (!FS.existsSync(MERGEDFILESDIR)) {
+  FS.mkdirSync(MERGEDFILESDIR);
+}
+
 let FILESINARGS;
 
 const defaultThumbnail = PATH.join(__static, "Thumbnail.png");
@@ -97,7 +107,6 @@ app.on("activate", () => {
 app.on("ready", async () => {
   createWindow();
   // globalShortcut.register("Control+Shift+I", () => false);
-  globalShortcut.register("Alt", () => false);
   win.webContents.on("new-window", function(e, url) {
     e.preventDefault();
     require("electron").shell.openExternal(url);
@@ -133,16 +142,16 @@ async function getCoverArtUrl(coverArt) {
     await new Promise((resolve) => {
       const dl = new DownloaderHelper(coverArt, APPDATAFOLDER);
       dl.start();
-      win.webContents.send("successMsg", "Downloading Image...");
+      sendMsgToFrontend("successMsg", "Downloading Image...");
       dl.on("end", () => {
-        win.webContents.send(
+        sendMsgToFrontend(
           "successMsg",
           "Cover Art Image Downloade. Writing tags..."
         );
         resolve((downloadedCover = dl.getDownloadPath()));
       });
       dl.on("error", () =>
-        win.webContents.send("errorMsg", "Error in downloding the cover")
+        sendMsgToFrontend("errorMsg", "Error in downloding the cover")
       );
     });
     return downloadedCover;
@@ -167,7 +176,7 @@ ipcMain.on("updateTrackInfo", async (e, data) => {
   let success = NodeID3.update(data.tags, currentFilePath);
   console.log("Tag write is " + success);
   if (success) {
-    win.webContents.send("successMsg", "Tags successfuly changed");
+    sendMsgToFrontend("successMsg", "Tags successfuly changed");
     win.webContents.send("removePlayingTrack");
     if (data.tags.title) {
       const folder = currentFilePath.match(/(.*)[\/\\]/)[1] || "";
@@ -182,7 +191,7 @@ ipcMain.on("updateTrackInfo", async (e, data) => {
           win.webContents.send("playFirstTrack");
         }, 500);
       }, 1000);
-      win.webContents.send(`successMsg","File Renamed to ${newFileName}`);
+      sendMsgToFrontend(`successMsg","File Renamed to ${newFileName}`);
     } else {
       setTimeout(() => {
         parseAudioFile(currentFilePath, "audioWithCover", false);
@@ -192,7 +201,7 @@ ipcMain.on("updateTrackInfo", async (e, data) => {
       }, 1000);
     }
   } else {
-    win.webContents.send("errorMsg", "Error occured in changing the tags");
+    sendMsgToFrontend("errorMsg", "Error occured in changing the tags");
   }
 });
 let importedVideo;
@@ -253,7 +262,7 @@ ipcMain.on("importCoverArt", async () => {
 ipcMain.on("startConversionToMp3", (e) => {
   const newFileName =
     importedVideo.replace(/(.*)[\/\\]/, "").split(".")[0] + ".mp3";
-  convertToMp3(importedVideo, PATH.join(MUSICFOLDER, newFileName));
+  convertToMp3(importedVideo, PATH.join(MUSICFOLDER, newFileName, "mp3"));
 });
 ipcMain.on("addMusicFromFile", async () => {
   let files = dialog.showOpenDialog({
@@ -385,6 +394,7 @@ async function parseAudioFile(
   response,
   parsingForPlaylistOrRecents
 ) {
+  console.log("Parsing" + pathToFile);
   return new Promise((resolve) => {
     let dataToSendBack;
     const fileName = pathToFile.replace(/(.*)[\/\\]/, "");
@@ -441,27 +451,6 @@ async function parseAudioFile(
         .catch((err) => {
           console.log("error at mm parser");
           resolve();
-          // console.log(err);
-          // const audioWithCover = {
-          //   title: fileName
-          //     .replace(".m4a", "")
-          //     .replace(".mp3", "")
-          //     .replace(".ogg", "")
-          //     .replace(".wav", ""),
-          //   artist: tags.artist || "unknown",
-          //   album: tags.album || "unknown",
-          //   path: "file://" + pathToFile,
-          //   cover: "file://" + defaultThumbnail,
-          //   duration: "00:00:00",
-          //   formatedLength: "__:__:__",
-          // };
-          // if (parsingForPlaylistOrRecents) {
-          //   dataToSendBack = audioWithCover;
-          //   resolve(dataToSendBack);
-          // } else {
-          //   resolve();
-          //   win.webContents.send(response, audioWithCover);
-          // }
         });
     });
   });
@@ -498,6 +487,16 @@ ipcMain.on("parseRecentlyPlayed", (e, recentsLocations) => {
     parseAudioFile(recentTrack, "addToRecents", false);
   });
 });
+ipcMain.on("deleteFile", (e, fileLocation) => {
+  deleteFile(fileLocation);
+});
+ipcMain.on("convertFile", (e, data) => {
+  convertToFileType(data.path, data.outputFileType);
+});
+ipcMain.on("mergeFiles", (e, data) => {
+  mergeFiles(data[0], data[1]);
+});
+
 function secondsToTime(sec) {
   if (sec) {
     var sec_num = parseInt(JSON.stringify(sec), 10); // don't forget the second param
@@ -522,7 +521,7 @@ function secondsToTime(sec) {
 function getBinaries() {
   var platform = ffbinaries.detectPlatform();
   if (FS.existsSync(ffmpegPath)) return;
-  win.webContents.send("successMsg", "Downloading necessary dependanicies");
+  sendMsgToFrontend("successMsg", "Downloading necessary dependanicies");
   return ffbinaries.downloadFiles(
     ["ffmpeg", "ffprobe"],
     { platform: platform, quiet: true, destination: APPDATAFOLDER },
@@ -534,17 +533,23 @@ function getBinaries() {
   );
 }
 
-async function convertToMp3(source, savePath) {
-  console.log("Save path is " + savePath);
+async function convertToFileType(source, outputFileType) {
+  const savePath =
+    PATH.join(CONVERTEDFILESDIR, getFileName(source)) + `.${outputFileType}`;
+  sendMsgToFrontend(
+    "progressActionName",
+    `Converting ${getFileName(source)} to ${outputFileType}`
+  );
   await new Promise((resolve) => {
     try {
       ffmpeg(source)
-        .toFormat("mp3")
+        .toFormat(outputFileType)
         .on("error", (err) => {
           console.log("Error in converting: " + err.message);
         })
         .on("progress", (progress) => {
           console.log(Math.floor(progress.percent));
+          sendMsgToFrontend("progressInfo", Math.floor(progress.percent));
           win.webContents.send(
             "conversionProgress",
             Math.floor(progress.percent)
@@ -562,4 +567,68 @@ async function convertToMp3(source, savePath) {
     }
   });
   return savePath;
+}
+
+function deleteFile(path) {
+  FS.unlink(path.replace("file://", ""), (err) => {
+    if (err) return sendMsgToFrontend("errorMsg", "Error in Deleting File");
+    sendMsgToFrontend("successMsg", `${getFileName(path)} deleted`);
+  });
+  win.webContents.send("deleteComplete");
+}
+function sendMsgToFrontend(type, msg) {
+  win.webContents.send(type, msg);
+}
+function getFileName(path) {
+  return path
+    .replace(/(.*)[\/\\]/, "")
+    .split(".")[0]
+    .replace("file://", "");
+}
+async function mergeFiles(files, outputFileName) {
+  const savePath = PATH.join(MERGEDFILESDIR, outputFileName) + `.mp3`;
+  const finalDuration = await getTotalFileDuration(files);
+  console.log("FInal duration is " + finalDuration);
+  const command = ffmpeg();
+  files.forEach((file) => {
+    command.input(file);
+  });
+  console.log("Merger started");
+  command
+    .on("start", function(data) {
+      console.log("start data is  " + data);
+      sendMsgToFrontend("progressActionName", `Merging files to ${savePath}`);
+    })
+    .on("error", function(err) {
+      console.log("An error occurred: " + err.message);
+      sendMsgToFrontend("errorMsg", "Error in merging files");
+    })
+    .on("progress", (progress) => {
+      let currentTime = getTimestampFormat(JSON.stringify(progress.timemark));
+      console.log("Current time is " + currentTime);
+      const percent = Math.floor((currentTime * 100) / finalDuration);
+      console.log(percent);
+      sendMsgToFrontend("progressInfo", percent);
+    })
+    .on("end", async () => {
+      console.log("Merging finished !");
+      sendMsgToFrontend("successMsg", "Merging Finished");
+      parseAudioFile(savePath, "audioWithCover", false);
+    })
+    .mergeToFile(savePath);
+}
+async function getTotalFileDuration(files) {
+  let totalDuration = 0;
+  for await (const file of files) {
+    let fileData = await mm.parseFile(file);
+    totalDuration += fileData.format.duration;
+  }
+  return Math.floor(totalDuration);
+}
+function getTimestampFormat(string) {
+  let hours = parseInt(string.substr(1, 2));
+  let minutes = parseInt(string.substr(4, 2));
+  let seconds = parseInt(string.substr(7, 4));
+  let timestamp = hours * 60 * 60 + minutes * 60 + seconds;
+  return Math.floor(timestamp);
 }

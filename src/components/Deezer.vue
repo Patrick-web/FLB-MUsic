@@ -1,5 +1,5 @@
 <template>
-  <div ref="content" class="Discover">
+  <div v-if="!settings.perfomanceMode" ref="content" class="Discover">
     <button
       class="tool"
       data-tip="Reload Deezer"
@@ -20,7 +20,11 @@
 
 <script>
 import * as cheerio from "cheerio";
+import { mapGetters } from "vuex";
 export default {
+  computed: {
+    ...mapGetters(["settings"]),
+  },
   components: {},
   methods: {
     reloadWebview() {
