@@ -70,17 +70,32 @@ export default {
     },
     play() {
       document.querySelector("audio").play();
-      const wave = new Wave();
-      wave.fromElement("audioTag", "visualizerArea", {
-        colors: ["white"],
-      });
+      if (document.querySelector("#visualizerArea")) {
+        const wave = new Wave();
+        wave.fromElement("audioTag", "visualizerArea", {
+          colors: ["white"],
+        });
+      }
+      if (webview) {
+        const webview = document.querySelector("webview");
+        webview.executeJavaScript(
+          `function pause () {
+            if(document.querySelector('.svg-icon-pause')){
+              document.querySelector('[aria-label="Pause"]').click()
+          }
+          }
+          pause();`
+        );
+      }
     },
     pause() {
       document.querySelector("audio").pause();
-      const wave = new Wave();
-      wave.fromElement("audioTag", "visualizerArea", {
-        colors: ["white"],
-      });
+      if (document.querySelector("#visualizerArea")) {
+        const wave = new Wave();
+        wave.fromElement("audioTag", "visualizerArea", {
+          colors: ["white"],
+        });
+      }
     },
     seekBack() {
       const audio = document.querySelector("#audioTag");
@@ -92,7 +107,12 @@ export default {
     },
     seek(e) {
       const track = document.querySelector(".seekBar");
-      const length = e.clientY - track.getBoundingClientRect().y;
+      let length;
+      if (document.querySelector(".traditionalLayout")) {
+        length = e.clientX - track.getBoundingClientRect().x;
+      } else {
+        length = e.clientY - track.getBoundingClientRect().y;
+      }
       const progress = document.querySelector(".seekProgress");
       if (length > -1 && length <= 900) {
         progress.style.height = length + "px";
@@ -142,28 +162,30 @@ export default {
       }
     }, 1000);
     progressBar.addEventListener("mousemove", (e) => {
-      const posY = e.clientY - progressBar.getBoundingClientRect().y;
-      progressInfoCard.style.top = `${posY - 30}px`;
-      this.duration = this.timeFormatter(audio.duration);
-      const percentageSeek = Math.ceil(
-        (posY / window.getComputedStyle(progressBar).height.substring(0, 3)) *
-          100
-      );
-      this.hoverTime = this.timeFormatter(
-        (percentageSeek * audio.duration) / 100
-      );
-      if (percentageSeek > 100) {
-        progressInfoCard.style.display = "none";
-        progressInfoCard.style.pointerEvents = "none";
-        progressInfoCard.style.marginTop = "0px";
-      } else if (percentageSeek < 10) {
-        progressInfoCard.style.display = "block";
-        progressInfoCard.style.pointerEvents = "none";
-        progressInfoCard.style.marginTop = "30px";
-      } else {
-        progressInfoCard.style.display = "block";
-        progressInfoCard.style.pointerEvents = "none";
-        progressInfoCard.style.marginTop = "0px";
+      if (!document.querySelector(".traditionalLayout")) {
+        const posY = e.clientY - progressBar.getBoundingClientRect().y;
+        progressInfoCard.style.top = `${posY - 30}px`;
+        this.duration = this.timeFormatter(audio.duration);
+        const percentageSeek = Math.ceil(
+          (posY / window.getComputedStyle(progressBar).height.substring(0, 3)) *
+            100
+        );
+        this.hoverTime = this.timeFormatter(
+          (percentageSeek * audio.duration) / 100
+        );
+        if (percentageSeek > 100) {
+          progressInfoCard.style.display = "none";
+          progressInfoCard.style.pointerEvents = "none";
+          progressInfoCard.style.marginTop = "0px";
+        } else if (percentageSeek < 10) {
+          progressInfoCard.style.display = "block";
+          progressInfoCard.style.pointerEvents = "none";
+          progressInfoCard.style.marginTop = "30px";
+        } else {
+          progressInfoCard.style.display = "block";
+          progressInfoCard.style.pointerEvents = "none";
+          progressInfoCard.style.marginTop = "0px";
+        }
       }
     });
   },
@@ -171,6 +193,26 @@ export default {
 </script>
 
 <style lang="scss">
+.traditionalLayout {
+  .TrackBar {
+    position: absolute;
+    left: 32.5%;
+    transform: rotate(90deg);
+    z-index: 50;
+    bottom: -330px;
+    background: none;
+    .progressInfoCard {
+      display: none;
+    }
+    .seekBar {
+      transform: rotate(180deg);
+      background: #ffffff25;
+    }
+    #pauseBt {
+      transform: scale(0.9) rotate(-90deg);
+    }
+  }
+}
 .TrackBar {
   position: absolute;
   z-index: 25;

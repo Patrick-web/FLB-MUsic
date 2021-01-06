@@ -30,7 +30,7 @@ export default {
         document.querySelector(".MainGrid").classList.contains("tabIsDiscover")
       ) {
         document.querySelector(".MainGrid").classList.remove("tabIsDiscover");
-        if (document.querySelector(".playingtrack")) {
+        if (document.querySelector(".playIcon")) {
           document.querySelector(".playIcon").click();
         }
       }
@@ -89,8 +89,7 @@ export default {
             });
           } else {
             const webview = document.querySelector("webview");
-            console.log("Webview is " + webview.isLoading());
-            if (webview.isLoading()) {
+            if (webview && webview.isLoading()) {
               const noti = this.$vs.notify({
                 position: "top-center",
                 title: `Loading Deezer...`,
@@ -111,6 +110,15 @@ export default {
 </script>
 
 <style lang="scss">
+.traditionalLayout {
+  .Tabswitcher {
+    width: 60%;
+    margin: auto;
+    .indicator {
+      width: 100px;
+    }
+  }
+}
 .Tabswitcher {
   background: #141414;
   display: grid;
@@ -146,7 +154,7 @@ export default {
     z-index: 1;
     left: 0;
     top: 0;
-    width: 130px;
+    width: 140px;
     height: 100%;
     background: #0062ff;
     transform-origin: center;

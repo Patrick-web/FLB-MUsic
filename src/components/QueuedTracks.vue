@@ -1,22 +1,24 @@
 <template>
   <div class="QueuedTracks animated faster disable__options">
     <h2 style="text-align:center;margin-bottom:5px">Queue</h2>
-    <transition-group
-      enter-active-class="animated slideInLeft faster"
-      leave-active-class="animated slideOutRight faster"
-    >
-      <TrackCard
-        :cover="track.cover"
-        :album="track.album"
-        :title="track.title"
-        :artist="track.artist"
-        :length="track.formatedLength"
-        :path="track.path"
-        :trackIndex="index"
-        v-for="(track, index) in queuedTracks"
-        :key="track.path"
-      />
-    </transition-group>
+    <div class="QueuedTracksWrapper">
+      <transition-group
+        enter-active-class="animated slideInLeft faster"
+        leave-active-class="animated slideOutRight faster"
+      >
+        <TrackCard
+          :cover="track.cover"
+          :album="track.album"
+          :title="track.title"
+          :artist="track.artist"
+          :length="track.formatedLength"
+          :path="track.path"
+          :trackIndex="index"
+          v-for="(track, index) in queuedTracks"
+          :key="track.path"
+        />
+      </transition-group>
+    </div>
   </div>
 </template>
 
@@ -45,12 +47,42 @@ export default {
 <style lang="scss">
 .showQueue {
   .QueuedTracks {
-    display: block;
+    opacity: 1;
+    pointer-events: all;
+  }
+}
+.traditionalLayout {
+  .showQueue {
+    .QueuedTracks {
+      width: 40%;
+    }
+  }
+}
+.traditionalLayout {
+  .QueuedTracks {
+    h2 {
+      background: rgb(255, 255, 255);
+      padding: 5px;
+      font-size: 1.2em;
+      color: black;
+    }
+    height: 300px;
+    width: 0%;
+    top: -300%;
+    left: initial;
+    right: 10px;
+    padding: 0px;
+    backdrop-filter: none;
+    background-color: rgb(0, 0, 0);
+    .QueuedTracksWrapper {
+      padding: 10px;
+      height: 85%;
+      overflow-y: scroll;
+    }
   }
 }
 .QueuedTracks {
   position: absolute;
-  display: none;
   backdrop-filter: blur(10px);
   background-color: rgba(0, 0, 0, 0.445);
   padding-top: 40px;
@@ -59,8 +91,8 @@ export default {
   z-index: 10;
   height: 100vh;
   width: 100%;
-  overflow: hidden;
-  overflow-y: scroll;
+  opacity: 0;
+  pointer-events: none;
   .TrackCard {
     backdrop-filter: blur(10px);
     background-color: rgba(255, 255, 255, 0.062);

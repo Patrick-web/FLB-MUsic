@@ -112,7 +112,7 @@ export default {
       this.addSelectedTrackToPlaylist("Favorites");
       const noti = this.$vs.notify({
         color: "success",
-        position: "top-center",
+        position: "top-right",
         title: "Added to Favourites",
         text: `${this.trackInfo.title} added to Favourites`,
       });
@@ -127,7 +127,7 @@ export default {
       track.classList.add("playingNext");
       const noti = this.$vs.notify({
         color: "success",
-        position: "top-center",
+        position: "top-right",
         title: "Playing Next",
         text: `${this.trackInfo.title}`,
       });
@@ -150,6 +150,16 @@ export default {
       track.classList.add("playingtrack");
       this.setPlayingTrack(this.trackInfo);
       this.addToRecents(this.trackInfo);
+      //Pause webview
+      const webview = document.querySelector("webview");
+      webview.executeJavaScript(
+        `function pause () {
+          if(document.querySelector('.svg-icon-pause')){
+            document.querySelector('[aria-label="Pause"]').click()
+          }
+        }
+       pause();`
+      );
     },
     setEditModeValues() {
       if (document.querySelector("#titleTag")) {
@@ -251,9 +261,6 @@ export default {
   margin-top: -2px;
   border: none;
   box-shadow: 0px -4px 10px rgba(0, 0, 0, 0.644);
-  .info {
-    padding-left: 20px !important;
-  }
   .cover {
     transform: scale(1.1) translate(0px, 0px);
     box-shadow: 0px 0px 25px rgba(0, 0, 0, 0.712);

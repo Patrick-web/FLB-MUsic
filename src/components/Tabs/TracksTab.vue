@@ -76,7 +76,9 @@ export default {
   mounted() {
     if (localStorage.getItem("addedTracks")) {
       const addedTracks = JSON.parse(localStorage.getItem("addedTracks"));
-      electron.ipcRenderer.send("parseAddedTracks", addedTracks);
+      setTimeout(() => {
+        electron.ipcRenderer.send("parseAddedTracks", addedTracks);
+      }, 2000);
     }
     electron.ipcRenderer.on("audioWithCover", (event, track) => {
       document.querySelector(".addedTracksTab").scrollTo(0, 0);

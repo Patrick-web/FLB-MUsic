@@ -39,23 +39,24 @@ export default {
   },
   mounted() {
     const webview = document.querySelector("webview");
-    webview.addEventListener("dom-ready", (e) => {
-      if (JSON.parse(localStorage.getItem("forceDeezerDarkMode"))) {
-        webview.executeJavaScript(
-          `function toggleDarkMode () {
+    if (webview) {
+      webview.addEventListener("dom-ready", (e) => {
+        if (JSON.parse(localStorage.getItem("forceDeezerDarkMode"))) {
+          webview.executeJavaScript(
+            `function toggleDarkMode () {
             setInterval(() => {
               document.querySelector('html').style.filter = 'invert(1) hue-rotate(180deg)';  
               document.querySelectorAll('html img').forEach(img=>img.style.filter="invert(1) hue-rotate(180deg)")
             }, 1000);
           }
           toggleDarkMode();`
-        );
-      }
-      webview.executeJavaScript(
-        `function removeAds () {
+          );
+        }
+        webview.executeJavaScript(
+          `function removeAds () {
             setInterval(() => {
               if(document.querySelector('.ads-bottom')){
-                  document.querySelector('.ads-bottom').style.display = 'none'
+                document.querySelector('.ads-bottom').style.display = 'none'
               }
               if(document.querySelector('.conversion-banner')){
                 document.querySelector('.conversion-banner').style.display = 'none';            
@@ -63,13 +64,14 @@ export default {
             }, 2000);
           }
           removeAds();`
-      );
-    });
+        );
+      });
 
-    webview.addEventListener("did-fail-load", () => {
-      webview.reload();
-    });
-    window.addEventListener("online", () => webview.reload());
+      webview.addEventListener("did-fail-load", () => {
+        webview.reload();
+      });
+      window.addEventListener("online", () => webview.reload());
+    }
   },
 };
 </script>

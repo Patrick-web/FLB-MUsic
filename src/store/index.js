@@ -39,6 +39,7 @@ export default new Vuex.Store({
       visualizer: true,
       compactMode: false,
       fakeLightMode: false,
+      traditionalLayout: false,
     },
     bulkSelected: [],
   },
@@ -93,7 +94,10 @@ export default new Vuex.Store({
     setPlayingTrack: (state, track) => {
       state.playingTrack = track;
       state.isPlaying = true;
-      document.querySelector(".playingPane").classList.remove("favored");
+      //Wait for the component to get loaded
+      setTimeout(() => {
+        document.querySelector(".playingPane").classList.remove("favored");
+      }, 100);
       if (state.playlists[0]) {
         state.playlists[0].tracks.forEach((track, index) => {
           if (track.path == state.playingTrack.path) {
@@ -267,7 +271,7 @@ export default new Vuex.Store({
       }
     },
     clearBulkSelect: (state) => {
-      state.bulkSelected.filter = [];
+      state.bulkSelected = [];
     },
   },
   getters: {

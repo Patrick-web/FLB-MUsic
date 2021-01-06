@@ -186,12 +186,17 @@ export default {
     },
     bulkDelete() {
       this.bulkSelected.forEach((track) => {
-        electron.ipcRenderer.send("deleteFile", track.path);
+        setTimeout(() => {
+          electron.ipcRenderer.send("deleteFile", track.path);
+        }, 1500);
       });
       this.selectedAction = "";
       this.selectedTracks = Array.from(
         document.querySelectorAll(".bulkSelected")
       ).map((track) => parseInt(track.getAttribute("id")));
+      this.selectedTracks.forEach((trackIndex) => {
+        this.removeFromAddedTracks(trackIndex);
+      });
     },
     bulkTagWrite() {
       let tags = {};
@@ -225,13 +230,7 @@ export default {
       this.selectedAction = "";
     },
   },
-  mounted() {
-    electron.ipcRenderer.on("deleteComplete", () => {
-      this.selectedTracks.forEach((track, index) => {
-        this.removeFromAddedTracks(index);
-      });
-    });
-  },
+  mounted() {},
 };
 </script>
 

@@ -1,6 +1,7 @@
 <template>
-  <div class="Settings">
-    <h1>Settings</h1>
+  <div class="Settings Modal">
+    <h1 id="SettingsTitle">Settings</h1>
+    <p class="modalClose" @click="hideSettings">X</p>
     <div class="settings">
       <div @click="toggleCompactMode" id="compactModeToggle" class="setting">
         <p>Compact Mode</p>
@@ -69,6 +70,17 @@
           </template>
         </vs-switch>
       </div>
+      <div @click="toggleLayout" id="toggleLayout" class="setting">
+        <p>Traditional Layout</p>
+        <vs-switch disabled="true" v-model="traditionalLayout">
+          <template #off>
+            Off
+          </template>
+          <template #on>
+            On
+          </template>
+        </vs-switch>
+      </div>
     </div>
     <div class="shortcuts">
       <h3>Shortcuts</h3>
@@ -92,10 +104,10 @@
         <p>Reload App</p>
         <pre>Ctrl + R</pre>
       </div>
+      <button @click="clearAddedTracks" class="dangerBt">
+        <h4>Clear Cached Tracks</h4>
+      </button>
     </div>
-    <button @click="clearAddedTracks" class="dangerBt">
-      <h4>Clear Cached Tracks</h4>
-    </button>
   </div>
 </template>
 
@@ -110,10 +122,14 @@ export default {
       visualizer: true,
       forceDeezerDarkMode: false,
       perfomanceMode: false,
+      traditionalLayout: false,
     };
   },
   methods: {
     ...mapMutations(["setSetting"]),
+    hideSettings() {
+      document.querySelector(".Settings").classList.remove("ModalShow");
+    },
     toggleFakeLightMode() {
       this.fakeLightMode = !this.fakeLightMode;
       document.querySelector("html").classList.toggle("fakeLightMode");
@@ -165,6 +181,12 @@ export default {
       }
       this.setSetting(["perfomanceMode", this.perfomanceMode]);
     },
+    toggleLayout() {
+      this.traditionalLayout = !this.traditionalLayout;
+      document.querySelector(".MainGrid").classList.toggle("traditionalLayout");
+      localStorage.setItem("traditionalLayout", this.traditionalLayout);
+      this.setSetting(["traditionalLayout", this.traditionalLayout]);
+    },
     clearAddedTracks() {
       localStorage.removeItem("addedTracks");
       const noti = this.$vs.notify({
@@ -176,9 +198,11 @@ export default {
     },
   },
   mounted() {
-    console.clear();
     if (JSON.parse(localStorage.getItem("compactMode")) == true) {
       document.querySelector("#compactModeToggle").click();
+    }
+    if (JSON.parse(localStorage.getItem("traditionalLayout")) == true) {
+      document.querySelector("#toggleLayout").click();
     }
     if (JSON.parse(localStorage.getItem("fakeLightMode")) == true) {
       document.querySelector("#fakeLightModeToggle").click();
@@ -202,26 +226,21 @@ export default {
 </script>
 
 <style lang="scss">
-.showSettings {
+.traditionalLayout {
   .Settings {
-    width: 300px;
-    max-height: 600px;
-    visibility: initial;
+    max-height: 550px;
   }
 }
 .Settings {
-  position: absolute;
-  z-index: 50;
-  width: 300px;
-  width: 0;
-  max-height: 0;
   background: rgb(24, 24, 24);
   box-shadow: 0px 0px 50px black;
-  bottom: 60px;
   padding: 10px;
   border-radius: 20px;
-  visibility: hidden;
   overflow: hidden;
+  overflow-y: scroll;
+  top: 5% !important;
+  max-height: 800px;
+  z-index: 50;
   h1 {
     text-align: center;
   }

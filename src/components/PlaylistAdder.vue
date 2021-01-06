@@ -1,8 +1,8 @@
 <template>
   <div class="Modal" id="PlaylistAdder">
     <h2>Select Playlist</h2>
+    <p class="modalClose" @click="hideAdder">X</p>
     <div class="newPlaylistForm">
-      <p class="modalClose" @click="hideAdder">X</p>
       <input
         class="inputElem"
         placeholder="Create new playlist"

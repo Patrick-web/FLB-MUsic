@@ -32,7 +32,7 @@ export default {
         "#conversionProgress"
       ).style.width = `${progress}%`;
       this.percetageProgress = progress;
-      if (progress == 100) {
+      if (progress > 98) {
         document.querySelector("#conversionProgress").style.width = `0%`;
         setTimeout(() => {
           this.converting = false;

@@ -32,7 +32,9 @@ export default {
     loadRecentsFromDB() {
       const recents = JSON.parse(localStorage.getItem("recentlyPlayed"));
       if (recents) {
-        electron.ipcRenderer.send("parseRecentlyPlayed", recents);
+        setTimeout(() => {
+          electron.ipcRenderer.send("parseRecentlyPlayed", recents);
+        }, 2500);
       }
     },
   },

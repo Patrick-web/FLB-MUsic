@@ -140,7 +140,9 @@ export default {
     TrackCard,
   },
   mounted() {
-    this.loadPlaylistsFromDB();
+    setTimeout(() => {
+      this.loadPlaylistsFromDB();
+    }, 2000);
     electron.ipcRenderer.on("addPlaylist", (event, playlists) => {
       this.addPlaylist(playlists);
     });

@@ -75,10 +75,10 @@ export default {
   },
   mounted() {
     if (navigator.onLine) {
-      this.fetchTweets();
+      // this.fetchTweets();
     } else {
       window.addEventListener("online", () => {
-        this.fetchTweets();
+        // this.fetchTweets();
       });
     }
   },

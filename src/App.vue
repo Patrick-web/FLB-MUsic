@@ -51,8 +51,8 @@
         <FxModeActions />
       </transition>
     </div>
-    <div class="playingPaneArea">
-      <div v-if="addedTracks.length !== 0" class="tabber">
+    <div v-if="playingTrack.title" class="playingPaneArea">
+      <div class="tabber">
         <div @click="hideQueue($event)" class="activeTab playingTabIcon">
           <img src="@/assets/music_note.svg" alt="" />
         </div>
@@ -132,9 +132,7 @@ export default {
       "clearRecentsAndPlaylists",
     ]),
     showSettings() {
-      document
-        .querySelector(".featuresSwitcherArea")
-        .classList.toggle("showSettings");
+      document.querySelector(".Settings").classList.toggle("ModalShow");
       document.querySelector(".MainGrid").classList.remove("showUpdates");
     },
     showUpdates() {
@@ -323,7 +321,7 @@ body {
 }
 
 .tabIsDiscover {
-  grid-template-columns: 1fr;
+  grid-template-columns: 1fr !important;
   .Titlebar {
     height: 0;
     margin-bottom: 0px;
@@ -350,6 +348,11 @@ body {
   justify-content: flex-start;
   height: 100vh;
   padding-left: 40px;
+}
+.traditionalLayout {
+  .tab {
+    padding-bottom: 110px;
+  }
 }
 .tab {
   height: 83vh;
@@ -454,6 +457,16 @@ body {
     background: #0062ff;
   }
 }
+.traditionalLayout {
+  .playingPaneArea {
+    .tabber {
+      left: initial;
+      right: 10px;
+      top: 0px;
+      transform: scale(0.8) translateY(-50%);
+    }
+  }
+}
 .playingPaneArea {
   position: relative;
   .tabber {
@@ -489,6 +502,15 @@ body {
   padding-top: 0px;
   height: 100vh;
 }
+.traditionalLayout {
+  #settingsBt,
+  #updatesBt {
+    bottom: 150px;
+  }
+  #updatesBt {
+    bottom: 110px;
+  }
+}
 #settingsBt,
 #updatesBt {
   position: absolute;
@@ -496,7 +518,7 @@ body {
   width: 30px;
   margin-left: 10px;
   cursor: pointer;
-  z-index: 10;
+  z-index: 51;
 }
 #settingsBt,
 #updatesBt:hover {

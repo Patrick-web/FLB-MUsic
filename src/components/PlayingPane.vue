@@ -51,10 +51,10 @@
     <img id="cover" :src="playingTrack.cover" alt="" />
     <div class="songInfo">
       <p id="songName">{{ playingTrack.title }}</p>
-      <p v-if="playingTrack.artist">
+      <p class="trackAdditionalInfo" v-if="playingTrack.artist">
         Artist : <span id="artistName">{{ playingTrack.artist }}</span>
       </p>
-      <p v-if="playingTrack.album">
+      <p class="trackAdditionalInfo" v-if="playingTrack.album">
         Album : <span id="albumName">{{ playingTrack.album }}</span>
       </p>
     </div>
@@ -120,7 +120,9 @@ import TrackBar from "@/components/TrackBar.vue";
 import { mapGetters, mapActions, mapMutations } from "vuex";
 import Wave from "wave-visualizer";
 import * as gis from "g-i-s";
-import CoverSearcher from "./CoverSearcher.vue";
+import CoverSearcher from "@/components/CoverSearcher.vue";
+import SpeechCommands from "@/components/SpeechCommands.js";
+
 const electron = window.require("electron");
 
 export default {
@@ -310,6 +312,7 @@ export default {
     },
   },
   mounted() {
+    SpeechCommands.init();
     const wave = new Wave();
     wave.fromElement("audioTag", "visualizerArea", {
       type: "wave",
@@ -353,6 +356,11 @@ export default {
 </script>
 
 <style lang="scss">
+.compactMode {
+  .trackAdditionalInfo {
+    display: none;
+  }
+}
 .favored {
   #favorIcon {
     cursor: pointer;
@@ -391,6 +399,90 @@ export default {
   .editModeBtns {
     display: flex;
     z-index: 5;
+  }
+}
+.traditionalLayout {
+  grid-template-columns: 0.2fr 4fr !important;
+  padding-right: 80px;
+  .playingPaneArea {
+    position: fixed;
+    z-index: 80;
+    width: 100vw;
+    height: 100px;
+    bottom: 0px;
+    #songName {
+      transform: translateY(-50%);
+    }
+    .trackAdditionalInfo {
+      display: none;
+    }
+    #visualizerArea {
+      width: auto;
+      height: auto;
+      right: -50px;
+      bottom: -30px;
+      transform: scale(0.6);
+    }
+  }
+  .playingPane {
+    overflow: hidden;
+    height: 100px;
+    backdrop-filter: blur(10px);
+    background-color: rgb(0, 0, 0);
+    box-shadow: 0px 0px 20px black;
+    max-width: 100%;
+    display: grid;
+    grid-template-columns: 1fr 14fr;
+    align-items: center;
+    justify-content: center;
+    #cover {
+      margin: 0px;
+      margin-left: 10px;
+      width: 60px;
+    }
+    #blurred {
+      opacity: 0.5;
+    }
+    .controls,
+    .p_options {
+      position: absolute;
+      left: initial;
+      right: 10px;
+      bottom: 10px;
+      width: 200px !important;
+      transform: scale(0.8);
+      backdrop-filter: none;
+      background-color: none;
+      z-index: 30;
+      background: none;
+    }
+    .controls {
+      right: 350px;
+      bottom: 30px;
+    }
+    .p_options {
+      right: 180px;
+      bottom: 30px !important;
+      border-left: 1px solid white;
+      border-radius: 0px;
+      padding-left: 15px;
+    }
+    .volumeRockerArea {
+      bottom: 5px;
+      right: 190px;
+      width: 350px;
+      backdrop-filter: none;
+      background: none;
+      z-index: 20;
+      input {
+        display: block;
+        cursor: pointer;
+        filter: grayscale(1) invert(1);
+      }
+    }
+    .volumeRockerArea:hover {
+      width: 350px;
+    }
   }
 }
 .playingPane {

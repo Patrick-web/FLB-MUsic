@@ -70,7 +70,10 @@ export default {
 
 <style lang="scss">
 .ModalShow {
-  transform: scale(1) !important;
+  transform: scaleY(1) !important;
+  div {
+    opacity: 1 !important;
+  }
 }
 .Modal {
   position: fixed;
@@ -89,24 +92,29 @@ export default {
   max-height: 400px;
   overflow: hidden;
   overflow-y: scroll;
-  transform: scale(0);
+  transform-origin: bottom left;
+  transform: scaleY(0);
   transition: 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  div {
+    opacity: 0;
+  }
   .modalClose {
     position: absolute;
-    left: 0;
-    transform: translate(-10px, -110%) scale(0.8);
+    right: 5px;
+    top: 5px;
+    transform: scale(0.8);
     background: crimson;
     border-radius: 50%;
-    padding: 10px;
-    padding-right: 14px;
-    padding-left: 14px;
+    padding: 6px;
+    padding-right: 10px;
+    padding-left: 10px;
     box-shadow: 0px 0px 10px black;
     font-family: roboto-thick;
     cursor: pointer;
     transition: 0.2s ease;
   }
   .modalClose:hover {
-    transform: translate(-10px, -110%) scale(0.7);
+    transform: scale(0.7);
   }
   input,
   button {
