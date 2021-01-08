@@ -2,17 +2,11 @@
   <div @click="cleanUp" class="MainGrid">
     <img
       id="logo"
-      class="animated pulse infinite slow"
       @click="togglePersonalInfo"
       src="@/assets/FLBMusicLogo.svg"
       alt=""
     />
-    <transition
-      enter-active-class="animated slideInDown"
-      leave-active-class="animated slideOutUp"
-    >
-      <ProgressBar />
-    </transition>
+    <ProgressBar />
     <Profile />
     <Updates />
     <PlaylistAdder />
@@ -130,6 +124,7 @@ export default {
       "changePlaylistName",
       "removeFromAddedTracks",
       "clearRecentsAndPlaylists",
+      "addToRecents",
     ]),
     showSettings() {
       document.querySelector(".Settings").classList.toggle("ModalShow");
@@ -181,6 +176,11 @@ export default {
   },
   mounted() {
     electron.ipcRenderer.send("loadArguments");
+    setTimeout(() => {
+      electron.ipcRenderer.on("addToRecents", (event, track) => {
+        this.addToRecents(track);
+      });
+    }, 1400);
     electron.ipcRenderer.on("errorMsg", (e, msg) => {
       const noti = this.$vs.notify({
         color: "warning",
@@ -252,7 +252,6 @@ body {
 ::-webkit-scrollbar {
   background: black;
   width: 5px;
-  height: 5px;
 }
 ::-webkit-scrollbar-track-piece {
   background: black;
@@ -301,7 +300,7 @@ body {
     transition: 0.2s ease-in-out;
   }
 }
-@media (max-width: 900px) {
+@media (max-width: 700px) {
   .MainGrid {
     grid-template-columns: 4fr 1fr;
   }
@@ -469,6 +468,8 @@ body {
 }
 .playingPaneArea {
   position: relative;
+  padding-top: 10px;
+
   .tabber {
     margin: auto;
     display: flex;
