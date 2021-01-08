@@ -16,7 +16,7 @@ export default new Vuex.Store({
     groupedByArtist: [],
     groupedByAlbum: [],
     groupedByGenre: [],
-    currentTab: "addedTracks",
+    currentTab: "addedTracksTab",
     selectedTrack: null,
     playingTrack: {
       title: "",
@@ -94,18 +94,18 @@ export default new Vuex.Store({
     setPlayingTrack: (state, track) => {
       state.playingTrack = track;
       state.isPlaying = true;
-      //Wait for the component to get loaded
+      //Wait for the PlayingPane component to get loaded
       setTimeout(() => {
         document.querySelector(".playingPane").classList.remove("favored");
+        if (state.playlists[0]) {
+          state.playlists[0].tracks.forEach((track, index) => {
+            if (track.path == state.playingTrack.path) {
+              state.indexInFavorites = index;
+              document.querySelector(".playingPane").classList.add("favored");
+            }
+          });
+        }
       }, 100);
-      if (state.playlists[0]) {
-        state.playlists[0].tracks.forEach((track, index) => {
-          if (track.path == state.playingTrack.path) {
-            state.indexInFavorites = index;
-            document.querySelector(".playingPane").classList.add("favored");
-          }
-        });
-      }
     },
     setRepeat: (state) => (state.repeat = !state.repeat),
     toggleShuffler: (state) => {
@@ -167,6 +167,8 @@ export default new Vuex.Store({
       savePlaylistChanges(state.playlists);
     },
     removeSelectedTrackToPlaylist: (state, [playlistIndex, trackIndex]) => {
+      console.log("Playlist Index" + playlistIndex);
+      console.log("playlist is " + state.playlists[playlistIndex]);
       state.playlists[playlistIndex].tracks.splice(trackIndex, 1);
       savePlaylistChanges(state.playlists);
     },
@@ -290,6 +292,7 @@ export default new Vuex.Store({
     discoverTracks: (state) => state.discoverTracks,
     settings: (state) => state.settings,
     bulkSelected: (state) => state.bulkSelected,
+    currentTab: (state) => state.currentTab,
   },
   actions: {
     determineNextTrack(state) {
