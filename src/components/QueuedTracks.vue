@@ -72,7 +72,6 @@ export default {
     left: initial;
     right: 10px;
     padding: 0px;
-    backdrop-filter: none;
     background-color: rgb(0, 0, 0);
     .QueuedTracksWrapper {
       padding: 10px;
@@ -83,8 +82,7 @@ export default {
 }
 .QueuedTracks {
   position: absolute;
-  backdrop-filter: blur(10px);
-  background-color: rgba(0, 0, 0, 0.445);
+  background-color: rgba(0, 0, 0, 0.863);
   padding-top: 40px;
   top: 0px;
   left: 0px;
@@ -94,8 +92,7 @@ export default {
   opacity: 0;
   pointer-events: none;
   .TrackCard {
-    backdrop-filter: blur(10px);
-    background-color: rgba(255, 255, 255, 0.062);
+    background-color: rgba(0, 0, 0, 0.548);
     display: grid;
     grid-template-columns: 1fr 5fr;
     .cover {

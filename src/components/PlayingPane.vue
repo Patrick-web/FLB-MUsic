@@ -121,7 +121,6 @@ import { mapGetters, mapActions, mapMutations } from "vuex";
 import Wave from "wave-visualizer";
 import * as gis from "g-i-s";
 import CoverSearcher from "@/components/CoverSearcher.vue";
-import SpeechCommands from "@/components/SpeechCommands.js";
 
 const electron = window.require("electron");
 
@@ -294,10 +293,7 @@ export default {
           title: "Removed from Favourites",
           text: `${this.playingTrack.title} removed from Favourites`,
         });
-        this.removeSelectedTrackToPlaylist([
-          "Favorites",
-          this.indexInFavorites,
-        ]);
+        this.removeSelectedTrackToPlaylist([0, this.indexInFavorites]);
         document.querySelector(".playingPane").classList.remove("favored");
       } else {
         this.addSelectedTrackToPlaylist("Favorites");
@@ -312,7 +308,6 @@ export default {
     },
   },
   mounted() {
-    SpeechCommands.init();
     const wave = new Wave();
     wave.fromElement("audioTag", "visualizerArea", {
       type: "wave",
@@ -427,7 +422,6 @@ export default {
   .playingPane {
     overflow: hidden;
     height: 100px;
-    backdrop-filter: blur(10px);
     background-color: rgb(0, 0, 0);
     box-shadow: 0px 0px 20px black;
     max-width: 100%;
@@ -451,7 +445,6 @@ export default {
       bottom: 10px;
       width: 200px !important;
       transform: scale(0.8);
-      backdrop-filter: none;
       background-color: none;
       z-index: 30;
       background: none;
@@ -471,7 +464,6 @@ export default {
       bottom: 5px;
       right: 190px;
       width: 350px;
-      backdrop-filter: none;
       background: none;
       z-index: 20;
       input {
@@ -567,7 +559,6 @@ export default {
     bottom: 10px;
     width: 80%;
     transform: translateX(-50%);
-    backdrop-filter: blur(10px);
     background-color: rgba(255, 255, 255, 0.062);
     border-radius: 40px;
     display: flex;
@@ -606,8 +597,7 @@ export default {
   display: flex;
   align-items: center;
   justify-content: center;
-  backdrop-filter: blur(10px);
-  background-color: rgba(100, 100, 100, 0.062);
+  background-color: rgba(100, 100, 100, 0.274);
   border-radius: 10px;
   padding: 5px;
   input {
@@ -624,7 +614,6 @@ export default {
   }
 }
 .trackTags {
-  backdrop-filter: blur(10px);
   background-color: rgba(100, 100, 100, 0.062);
   position: absolute;
   top: 0;
@@ -638,7 +627,6 @@ export default {
     z-index: 5;
     text-align: center;
     transform: translateY(50%) translateX(-50%);
-    backdrop-filter: blur(10px);
     width: 50%;
     left: 50%;
     padding: 5px;
@@ -680,7 +668,6 @@ export default {
   overflow: hidden;
   transition: 0.2s ease;
   color: white;
-  backdrop-filter: blur(10px);
   background-color: rgba(100, 100, 100, 0.062);
   p {
     padding: 5px;
@@ -714,7 +701,7 @@ export default {
   height: 100%;
   background: black;
 }
-@media (max-width: 900px) {
+@media (max-width: 700px) {
   .playingPane {
     #cover {
       width: 100px;

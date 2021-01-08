@@ -179,7 +179,7 @@ export default {
     font-size: 1.2em;
   }
 }
-@media (max-width: 900px) {
+@media (max-width: 700px) {
   .vMenu {
     display: none;
   }

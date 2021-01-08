@@ -55,21 +55,6 @@
           </template>
         </vs-switch>
       </div>
-      <div
-        @click="togglePerfomanceMode"
-        id="perfomanceModeToggle"
-        class="setting"
-      >
-        <p>Perfomance Mode</p>
-        <vs-switch disabled="true" v-model="perfomanceMode">
-          <template #off>
-            Off
-          </template>
-          <template #on>
-            On
-          </template>
-        </vs-switch>
-      </div>
       <div @click="toggleLayout" id="toggleLayout" class="setting">
         <p>Traditional Layout</p>
         <vs-switch disabled="true" v-model="traditionalLayout">
@@ -121,7 +106,6 @@ export default {
       fakeLightMode: false,
       visualizer: true,
       forceDeezerDarkMode: false,
-      perfomanceMode: false,
       traditionalLayout: false,
     };
   },
@@ -161,25 +145,6 @@ export default {
         title: "Reload Deezer to apply this change",
       });
       this.setSetting(["forceDeezerDarkMode", this.forceDeezerDarkMode]);
-    },
-    togglePerfomanceMode() {
-      this.perfomanceMode = !this.perfomanceMode;
-      localStorage.setItem("perfomanceMode", this.perfomanceMode);
-      if (this.perfomanceMode) {
-        const noti = this.$vs.notify({
-          position: "top-center",
-          color: "warning",
-          title: "No streaming and No visualizer to save on resources",
-        });
-        //if perf mode is on then turn of visualizer
-        (this.visualizer = false), this.setSetting(["visualizer", false]);
-      } else {
-        const noti = this.$vs.notify({
-          position: "top-center",
-          title: "Exiting Perfomance Mode",
-        });
-      }
-      this.setSetting(["perfomanceMode", this.perfomanceMode]);
     },
     toggleLayout() {
       this.traditionalLayout = !this.traditionalLayout;

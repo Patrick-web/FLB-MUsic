@@ -8,9 +8,6 @@
       </div>
       <SortWidget />
     </div>
-    <br />
-    <br />
-    <br />
     <div v-if="addedTracks.length === 0" class="noMusic">
       <img src="@/assets/addIllustration.svg" alt="" />
       <h3>Click on the Plus Icon to add tracks or drop them here</h3>
@@ -49,7 +46,7 @@ export default {
     TrackCard,
   },
   computed: {
-    ...mapGetters(["addedTracks"]),
+    ...mapGetters(["addedTracks", "currentTab"]),
   },
   methods: {
     ...mapMutations(["addTrack", "removeFromAddedTracks", "clearBulkSelect"]),
@@ -122,7 +119,7 @@ export default {
   }
 }
 .addedTracksTab {
-  padding-top: 0px;
+  padding-top: 0px !important;
   position: relative;
   .showHiddenActions {
     background: #0062ff !important;
@@ -132,11 +129,11 @@ export default {
     }
   }
   .trackActions {
-    position: fixed;
+    position: sticky;
     background: black;
     top: 0;
     left: 0;
-    width: 16.8%;
+    width: 100%;
     z-index: 10;
     padding: 10px;
     padding-right: 15px;
@@ -144,6 +141,7 @@ export default {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    margin: 0;
     .hiddenActions {
       display: none;
       box-shadow: 0px 0px 50px black;

@@ -161,7 +161,7 @@ export default {
     transition: 0.2s ease-in-out;
   }
 }
-@media (max-width: 900px) {
+@media (max-width: 700px) {
   .Tabswitcher {
     display: none;
   }

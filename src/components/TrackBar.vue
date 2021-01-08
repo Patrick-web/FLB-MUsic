@@ -76,8 +76,8 @@ export default {
           colors: ["white"],
         });
       }
+      const webview = document.querySelector("webview");
       if (webview) {
-        const webview = document.querySelector("webview");
         webview.executeJavaScript(
           `function pause () {
             if(document.querySelector('.svg-icon-pause')){
@@ -291,7 +291,6 @@ export default {
     padding: 5px;
     font-size: 0.8rem;
     box-shadow: 4px 4px 8px rgba(0, 0, 0, 0.404);
-    backdrop-filter: saturate(180%) blur(15px);
     div {
       margin-bottom: 2px;
       display: flex;

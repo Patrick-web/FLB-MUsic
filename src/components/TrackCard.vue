@@ -152,14 +152,16 @@ export default {
       this.addToRecents(this.trackInfo);
       //Pause webview
       const webview = document.querySelector("webview");
-      webview.executeJavaScript(
-        `function pause () {
-          if(document.querySelector('.svg-icon-pause')){
-            document.querySelector('[aria-label="Pause"]').click()
+      if (webview) {
+        webview.executeJavaScript(
+          `function pause () {
+            if(document.querySelector('.svg-icon-pause')){
+              document.querySelector('[aria-label="Pause"]').click()
           }
         }
        pause();`
-      );
+        );
+      }
     },
     setEditModeValues() {
       if (document.querySelector("#titleTag")) {
@@ -407,20 +409,10 @@ export default {
     .grid2 {
       display: none;
     }
-    .delIcon {
-      display: none !important;
-    }
   }
 }
 .TrackCard:hover {
   background: #ffffff1c;
-  .info {
-    padding-left: 20px;
-  }
-  .cover {
-    transform: scale(1.05) translate(10px, -10px);
-    box-shadow: -4px 4px 15px rgba(0, 0, 0, 0.712);
-  }
   .delIcon {
     transform: translateX(50%) translateY(-50%) scale(1);
   }
