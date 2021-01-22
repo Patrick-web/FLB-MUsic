@@ -3,9 +3,9 @@
     <h1 id="SettingsTitle">Settings</h1>
     <p class="modalClose" @click="hideSettings">X</p>
     <div class="settings">
-      <div @click="toggleCompactMode" id="compactModeToggle" class="setting">
-        <p>Compact Mode</p>
-        <vs-switch disabled="true" v-model="compactMode">
+      <div @click="toggleTableLayout" id="tableLayoutToggle" class="setting">
+        <p>Table Layout</p>
+        <vs-switch disabled="true" v-model="tableLayout">
           <template #off>
             Off
           </template>
@@ -55,17 +55,6 @@
           </template>
         </vs-switch>
       </div>
-      <div @click="toggleLayout" id="toggleLayout" class="setting">
-        <p>Traditional Layout</p>
-        <vs-switch disabled="true" v-model="traditionalLayout">
-          <template #off>
-            Off
-          </template>
-          <template #on>
-            On
-          </template>
-        </vs-switch>
-      </div>
     </div>
     <div class="shortcuts">
       <h3>Shortcuts</h3>
@@ -102,11 +91,10 @@ import Wave from "wave-visualizer";
 export default {
   data() {
     return {
-      compactMode: false,
+      tableLayout: false,
       fakeLightMode: false,
       visualizer: true,
       forceDeezerDarkMode: false,
-      traditionalLayout: false,
     };
   },
   methods: {
@@ -120,11 +108,11 @@ export default {
       localStorage.setItem("fakeLightMode", this.fakeLightMode);
       this.setSetting(["fakeLightMode", this.fakeLightMode]);
     },
-    toggleCompactMode() {
-      this.compactMode = !this.compactMode;
-      document.querySelector(".MainGrid").classList.toggle("compactMode");
-      localStorage.setItem("compactMode", this.compactMode);
-      this.setSetting(["compactMode", this.compactMode]);
+    toggleTableLayout() {
+      this.tableLayout = !this.tableLayout;
+      document.querySelector(".MainGrid").classList.toggle("tableLayout");
+      localStorage.setItem("tableLayout", this.tableLayout);
+      this.setSetting(["tableLayout", this.tableLayout]);
     },
     toggleVisualizer() {
       this.visualizer = !this.visualizer;
@@ -146,12 +134,6 @@ export default {
       });
       this.setSetting(["forceDeezerDarkMode", this.forceDeezerDarkMode]);
     },
-    toggleLayout() {
-      this.traditionalLayout = !this.traditionalLayout;
-      document.querySelector(".MainGrid").classList.toggle("traditionalLayout");
-      localStorage.setItem("traditionalLayout", this.traditionalLayout);
-      this.setSetting(["traditionalLayout", this.traditionalLayout]);
-    },
     clearAddedTracks() {
       localStorage.removeItem("addedTracks");
       const noti = this.$vs.notify({
@@ -163,11 +145,8 @@ export default {
     },
   },
   mounted() {
-    if (JSON.parse(localStorage.getItem("compactMode")) == true) {
-      document.querySelector("#compactModeToggle").click();
-    }
-    if (JSON.parse(localStorage.getItem("traditionalLayout")) == true) {
-      document.querySelector("#toggleLayout").click();
+    if (JSON.parse(localStorage.getItem("tableLayout")) == true) {
+      document.querySelector("#tableLayoutToggle").click();
     }
     if (JSON.parse(localStorage.getItem("fakeLightMode")) == true) {
       document.querySelector("#fakeLightModeToggle").click();
@@ -191,21 +170,17 @@ export default {
 </script>
 
 <style lang="scss">
-.traditionalLayout {
-  .Settings {
-    max-height: 550px;
-  }
-}
 .Settings {
-  background: rgb(24, 24, 24);
+  background-color: rgba(0, 0, 0, 0.39);
+  backdrop-filter: blur(10px);
   box-shadow: 0px 0px 50px black;
   padding: 10px;
   border-radius: 20px;
   overflow: hidden;
-  overflow-y: scroll;
   top: 5% !important;
   max-height: 800px;
   z-index: 50;
+  border: 1px solid rgba(255, 255, 255, 0.315);
   h1 {
     text-align: center;
   }

@@ -2,13 +2,8 @@
   <div class="tab recentsTab">
     <transition-group>
       <TrackCard
-        :cover="track.cover"
-        :album="track.album"
-        :title="track.title"
-        :artist="track.artist"
-        :length="track.formatedLength"
         :trackIndex="index"
-        :path="track.path"
+        :track="track"
         v-for="(track, index) in recentsTracks"
         :key="track.path"
       />
@@ -54,7 +49,7 @@ export default {
         this.loadRecentsFromDB(track);
       }, 100);
     });
-    this.loadRecentsFromDB();
+    // this.loadRecentsFromDB();
   },
 };
 </script>

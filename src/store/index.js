@@ -42,6 +42,11 @@ export default new Vuex.Store({
       traditionalLayout: false,
     },
     bulkSelected: [],
+    bingAlbums: [],
+    bingArtists: [],
+    bingTracks: [],
+    bingArtistInfo: null,
+    bingAlbumInfo: null,
   },
   mutations: {
     switchTab: (state, tab) => {
@@ -54,7 +59,15 @@ export default new Vuex.Store({
         state.selectedTrack = state.playingTrack;
       }
     },
-    toggleIsPlaying: (state) => (state.isPlaying = !state.isPlaying),
+    toggleIsPlaying: (state) => {
+      state.isPlaying = !state.isPlaying;
+      const audio = document.querySelector("audio");
+      if (state.isPlaying) {
+        audio.play();
+      } else {
+        audio.pause();
+      }
+    },
     toggleAutoplay: (state) => (state.autoplay = !state.autoplay),
     addToQueue: (state, track) => {
       state.queue.push(track);
@@ -64,15 +77,19 @@ export default new Vuex.Store({
       console.log(index);
       state.queue.splice(index, 1);
     },
+    purge: (state, trackPaths) => {
+      state.addedTracks.forEach((track, index) => {
+        trackPaths.forEach((trackPath) => {
+          if (track.path == trackPath) {
+            state.addedTracks.splice(index, 1);
+          }
+        });
+      });
+      localStorage.setItem("addedTracks", JSON.stringify(state.addedTracks));
+    },
     addTrack: (state, track) => {
       state.addedTracks.unshift(track);
       state.addedTracks = removeDuplicates(state.addedTracks, "path");
-      localStorage.setItem(
-        "addedTracks",
-        JSON.stringify(
-          state.addedTracks.map((track) => track.path.replace("file://", ""))
-        )
-      );
     },
     removeFromAddedTracks: (state, index) => {
       state.addedTracks.splice(index, 1);
@@ -121,11 +138,7 @@ export default new Vuex.Store({
         }
         localStorage.setItem(
           "recentlyPlayed",
-          JSON.stringify(
-            state.recentsTracks.map((recentTrack) =>
-              recentTrack.path.replace("file://", "")
-            )
-          )
+          JSON.stringify(state.recentsTracks)
         );
       }
     },
@@ -275,6 +288,11 @@ export default new Vuex.Store({
     clearBulkSelect: (state) => {
       state.bulkSelected = [];
     },
+    setBingTracks: (state, tracks) => (state.bingTracks = tracks),
+    setBingArtists: (state, artists) => (state.bingArtists = artists),
+    setBingAlbums: (state, albums) => (state.bingAlbums = albums),
+    setBingArtistInfo: (state, info) => (state.bingArtistInfo = info),
+    setBingAlbumInfo: (state, info) => (state.bingAlbumInfo = info),
   },
   getters: {
     queuedTracks: (state) => state.queue,
@@ -293,6 +311,11 @@ export default new Vuex.Store({
     settings: (state) => state.settings,
     bulkSelected: (state) => state.bulkSelected,
     currentTab: (state) => state.currentTab,
+    bingTracks: (state) => state.bingTracks,
+    bingArtists: (state) => state.bingArtists,
+    bingAlbums: (state) => state.bingAlbums,
+    bingArtistInfo: (state) => state.bingArtistInfo,
+    bingAlbumInfo: (state) => state.bingAlbumInfo,
   },
   actions: {
     determineNextTrack(state) {
@@ -306,13 +329,19 @@ export default new Vuex.Store({
         nextToPlay.click();
         nextToPlay.classList.remove("playingNext");
       } else {
-        const nextTrack = document.querySelector(".playingtrack").nextSibling;
-        if (nextTrack) {
-          nextTrack.click();
-        } else {
-          document.querySelector(".TrackCard").click();
+        if (document.querySelector(".playingtrack")) {
+          const nextTrack = document.querySelector(".playingtrack").nextSibling;
+          if (nextTrack) {
+            nextTrack.click();
+          } else {
+            document.querySelector(".TrackCard").click();
+          }
         }
       }
+    },
+    saveDataToLocalStorage(state) {
+      const addedTracks = state.state.addedTracks;
+      localStorage.setItem("addedTracks", JSON.stringify(addedTracks));
     },
   },
   modules: {},

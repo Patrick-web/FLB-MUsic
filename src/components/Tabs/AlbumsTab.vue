@@ -5,19 +5,19 @@
       :key="group[0]"
       class="ExpansionPanel"
     >
-      <div class="titleArea" @click="toggleExpansion($event)">
-        <p>{{ group[0] }}</p>
-        <img class="expandIcon" src="@/assets/arrowDown.svg" alt="" />
+      <div class="titleArea" @click.stop="toggleExpansion($event)">
+        <p style="pointer-events:none">{{ group[0] }}</p>
+        <img
+          style="pointer-events:none"
+          class="expandIcon"
+          src="@/assets/arrowDown.svg"
+          alt=""
+        />
       </div>
       <div class="body">
         <transition-group>
           <TrackCard
-            :cover="track.cover"
-            :album="track.album"
-            :title="track.title"
-            :artist="track.artist"
-            :length="track.formatedLength"
-            :path="track.path"
+            :track="track"
             :trackIndex="index"
             v-for="(track, index) in group[1]"
             :key="track.path"

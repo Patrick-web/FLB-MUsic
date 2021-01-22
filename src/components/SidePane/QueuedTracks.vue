@@ -1,18 +1,19 @@
 <template>
   <div class="QueuedTracks animated faster disable__options">
     <h2 style="text-align:center;margin-bottom:5px">Queue</h2>
+    <p
+      style="text-align:center;margin-top:250px;padding:10px;font-family:roboto-light"
+      v-if="queuedTracks.length == 0"
+    >
+      Queue is Empty. Right click on a track to add it to the queue
+    </p>
     <div class="QueuedTracksWrapper">
       <transition-group
-        enter-active-class="animated slideInLeft faster"
+        enter-active-class="animated slideInRight faster"
         leave-active-class="animated slideOutRight faster"
       >
         <TrackCard
-          :cover="track.cover"
-          :album="track.album"
-          :title="track.title"
-          :artist="track.artist"
-          :length="track.formatedLength"
-          :path="track.path"
+          :track="track"
           :trackIndex="index"
           v-for="(track, index) in queuedTracks"
           :key="track.path"
@@ -45,54 +46,16 @@ export default {
 </script>
 
 <style lang="scss">
-.showQueue {
-  .QueuedTracks {
-    opacity: 1;
-    pointer-events: all;
-  }
-}
-.traditionalLayout {
-  .showQueue {
-    .QueuedTracks {
-      width: 40%;
-    }
-  }
-}
-.traditionalLayout {
-  .QueuedTracks {
-    h2 {
-      background: rgb(255, 255, 255);
-      padding: 5px;
-      font-size: 1.2em;
-      color: black;
-    }
-    height: 300px;
-    width: 0%;
-    top: -300%;
-    left: initial;
-    right: 10px;
-    padding: 0px;
-    background-color: rgb(0, 0, 0);
-    .QueuedTracksWrapper {
-      padding: 10px;
-      height: 85%;
-      overflow-y: scroll;
-    }
-  }
-}
 .QueuedTracks {
   position: absolute;
-  background-color: rgba(0, 0, 0, 0.863);
   padding-top: 40px;
   top: 0px;
   left: 0px;
   z-index: 10;
   height: 100vh;
   width: 100%;
-  opacity: 0;
-  pointer-events: none;
+  opacity: 1;
   .TrackCard {
-    background-color: rgba(0, 0, 0, 0.548);
     display: grid;
     grid-template-columns: 1fr 5fr;
     .cover {

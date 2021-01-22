@@ -98,24 +98,6 @@ export default {
   div {
     opacity: 0;
   }
-  .modalClose {
-    position: absolute;
-    right: 5px;
-    top: 5px;
-    transform: scale(0.8);
-    background: crimson;
-    border-radius: 50%;
-    padding: 6px;
-    padding-right: 10px;
-    padding-left: 10px;
-    box-shadow: 0px 0px 10px black;
-    font-family: roboto-thick;
-    cursor: pointer;
-    transition: 0.2s ease;
-  }
-  .modalClose:hover {
-    transform: scale(0.7);
-  }
   input,
   button {
     font-size: 1.2em;

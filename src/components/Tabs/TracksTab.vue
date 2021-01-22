@@ -21,12 +21,7 @@
     </div>
     <transition-group>
       <TrackCard
-        :cover="track.cover"
-        :album="track.album"
-        :title="track.title"
-        :artist="track.artist"
-        :length="track.formatedLength"
-        :path="track.path"
+        :track="track"
         :trackIndex="index"
         v-for="(track, index) in addedTracks"
         :key="track.path"
@@ -36,7 +31,7 @@
 </template>
 
 <script>
-import { mapGetters, mapMutations } from "vuex";
+import { mapActions, mapGetters, mapMutations } from "vuex";
 const electron = window.require("electron");
 import SortWidget from "@/components/SortWidget.vue";
 import TrackCard from "@/components/TrackCard.vue";
@@ -49,7 +44,13 @@ export default {
     ...mapGetters(["addedTracks", "currentTab"]),
   },
   methods: {
-    ...mapMutations(["addTrack", "removeFromAddedTracks", "clearBulkSelect"]),
+    ...mapMutations([
+      "addTrack",
+      "purge",
+      "removeFromAddedTracks",
+      "clearBulkSelect",
+    ]),
+    ...mapActions(["saveDataToLocalStorage"]),
     loadMusicFolder() {
       electron.ipcRenderer.send("loadMusicFolder");
       document.querySelector("#loadMusicFolderBt").style.display = "none";
@@ -74,9 +75,16 @@ export default {
     if (localStorage.getItem("addedTracks")) {
       const addedTracks = JSON.parse(localStorage.getItem("addedTracks"));
       setTimeout(() => {
-        electron.ipcRenderer.send("parseAddedTracks", addedTracks);
-      }, 2000);
+        addedTracks.forEach((track) => this.addTrack(track));
+      }, 1000);
+      // electron.ipcRenderer.send("verifyExistence", addedTracks);
     }
+    electron.ipcRenderer.on("saveDataToLocalStorage", (event, tracks) => {
+      this.saveDataToLocalStorage();
+    });
+    electron.ipcRenderer.on("purgeFromCache", (event, tracks) => {
+      this.purge(tracks);
+    });
     electron.ipcRenderer.on("audioWithCover", (event, track) => {
       document.querySelector(".addedTracksTab").scrollTo(0, 0);
       document.querySelector("#addedTracks").click();
@@ -121,6 +129,7 @@ export default {
 .addedTracksTab {
   padding-top: 0px !important;
   position: relative;
+  padding-bottom: 100px;
   .showHiddenActions {
     background: #0062ff !important;
     border-radius: 12px !important;
@@ -130,7 +139,8 @@ export default {
   }
   .trackActions {
     position: sticky;
-    background: black;
+    background-color: rgba(0, 0, 0, 0.247);
+    backdrop-filter: blur(10px);
     top: 0;
     left: 0;
     width: 100%;
@@ -153,7 +163,7 @@ export default {
       display: none;
     }
     div {
-      background: #141414;
+      background: #1414144b;
       display: flex;
       justify-content: space-between;
       align-items: center;
@@ -163,9 +173,10 @@ export default {
       position: relative;
       .sortMode {
         position: absolute;
-        bottom: -140px;
-        left: -10px;
-        background: #141414;
+        bottom: -220px;
+        left: -5px;
+        background-color: #000000c9;
+        backdrop-filter: blur(10px);
         padding: 8px;
         border-radius: 40px;
         border: 2px solid #0062ff00;
@@ -191,18 +202,19 @@ export default {
         border: 2px solid #0062ff;
       }
       .sortParams {
-        bottom: -90px;
+        bottom: -170px;
         border-radius: 20px;
         left: -10px;
         position: absolute;
         width: 100px;
-        background: #141414;
+        background-color: #000000d0;
+        backdrop-filter: blur(10px);
         overflow: hidden;
         p {
           padding: 10px;
         }
         p:hover {
-          background: #0062ff41;
+          background: #0062ff;
         }
         .selectedParam {
           background: #0062ff;

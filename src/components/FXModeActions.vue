@@ -242,9 +242,11 @@ export default {
   top: 20%;
   right: 10%;
   width: 300px;
-  background: #171717;
+  background-color: rgba(0, 0, 0, 0.39);
+  backdrop-filter: blur(10px);
   box-shadow: 0px 0px 50px black;
-  border-radius: 15px;
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.315);
   overflow: hidden;
   h1,
   h3 {

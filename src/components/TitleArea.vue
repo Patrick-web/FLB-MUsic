@@ -120,10 +120,10 @@ export default {
     padding: 5px;
     padding-left: 10px;
     font-size: 1.3rem;
-    border-radius: 20px;
+    border-radius: 0px;
     border: 1px solid transparent;
     outline: none;
-    background: #141414;
+    background: #0000006e;
     color: white;
     width: 250px;
     font-family: roboto-light;
@@ -132,8 +132,8 @@ export default {
 
   input:focus {
     padding-left: 10px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.192);
     // width: 400px;
-    border-radius: 10px;
   }
   input:focus ~ .magnifier {
     left: 50%;
@@ -141,7 +141,7 @@ export default {
   }
 
   input:hover {
-    background: rgb(24, 24, 24);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.192);
     cursor: pointer;
   }
 }
@@ -159,11 +159,6 @@ export default {
   font-weight: 800;
   letter-spacing: 2px;
   color: rgb(var(--base-one), var(--base-two), var(--base-three));
-}
-input::placeholder {
-  color: rgba(255, 255, 255, 0.548);
-  font-weight: 300;
-  font-size: 1em;
 }
 @media (max-width: 900px) {
   .Titlebar {

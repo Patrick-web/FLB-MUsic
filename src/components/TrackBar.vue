@@ -2,41 +2,17 @@
   <div class="TrackBar">
     <div v-if="!playingTrack.path" class="noMusicPlaying"></div>
     <audio :src="playingTrack.path" id="audioTag" autoplay></audio>
-
     <div @click="seek($event)" class="seekBar">
       <div class="seekProgress"></div>
-      <div class="progressInfoCard">
-        <div class="progressInfoWrapper">
-          <div>
-            <span>Now</span>
-            <span>{{ currentTime }}</span>
-          </div>
-          <div>
-            <span>Length</span>
-            <span>{{ duration }}</span>
-          </div>
-          <div>
-            <span>Hovering</span>
-            <span>{{ hoverTime }}</span>
-          </div>
-        </div>
-      </div>
+      <p id="hoverTime">{{ hoverTime }}</p>
     </div>
-    <div @click="toggleIsPlaying" id="pauseBt" class="iconsWrapper">
-      <img
-        v-if="!isPlaying"
-        @click="play"
-        class="toggleIcons playIcon"
-        src="@/assets/playButton.svg"
-        alt
-      />
-      <img
-        v-if="isPlaying"
-        @click="pause"
-        class="toggleIcons pauseIcon"
-        src="@/assets/pause.svg"
-        alt
-      />
+    <div class="progressInfoCard">
+      <p>
+        {{ currentTime }}
+      </p>
+      <p>
+        {{ duration }}
+      </p>
     </div>
   </div>
 </template>
@@ -107,19 +83,13 @@ export default {
     },
     seek(e) {
       const track = document.querySelector(".seekBar");
+      const seekProgress = document.querySelector(".seekProgress");
       let length;
-      if (document.querySelector(".traditionalLayout")) {
-        length = e.clientX - track.getBoundingClientRect().x;
-      } else {
-        length = e.clientY - track.getBoundingClientRect().y;
-      }
-      const progress = document.querySelector(".seekProgress");
-      if (length > -1 && length <= 900) {
-        progress.style.height = length + "px";
-      }
+      length = e.clientX - track.getBoundingClientRect().x;
       const percentageSeek = Math.ceil(
-        (length / window.getComputedStyle(track).height.substring(0, 3)) * 100
+        (length / window.getComputedStyle(track).width.substring(0, 3)) * 100
       );
+      seekProgress.style.width = `${percentageSeek}%`;
       const audio = document.querySelector("#audioTag");
 
       audio.currentTime = (percentageSeek * audio.duration) / 100;
@@ -148,98 +118,59 @@ export default {
     const progressBar = document.querySelector(".seekBar");
     const seekProgress = document.querySelector(".seekProgress");
     const progressInfoCard = document.querySelector(".progressInfoCard");
-    const audio = document.querySelector("#audioTag");
+    const audio = document.querySelector("audio");
     console.log(audio.currentTime);
     setInterval(() => {
       if (audio.currentTime) {
         this.currentTime = this.timeFormatter(audio.currentTime);
+        this.duration = this.timeFormatter(audio.duration);
       }
       const percent = Math.floor((audio.currentTime / audio.duration) * 100);
-      seekProgress.style.height = `${percent}%`;
-
+      seekProgress.style.width = `${percent}%`;
       if (audio.currentTime == audio.duration) {
         this.determineNextTrack();
       }
     }, 1000);
     progressBar.addEventListener("mousemove", (e) => {
-      if (!document.querySelector(".traditionalLayout")) {
-        const posY = e.clientY - progressBar.getBoundingClientRect().y;
-        progressInfoCard.style.top = `${posY - 30}px`;
-        this.duration = this.timeFormatter(audio.duration);
-        const percentageSeek = Math.ceil(
-          (posY / window.getComputedStyle(progressBar).height.substring(0, 3)) *
-            100
-        );
-        this.hoverTime = this.timeFormatter(
-          (percentageSeek * audio.duration) / 100
-        );
-        if (percentageSeek > 100) {
-          progressInfoCard.style.display = "none";
-          progressInfoCard.style.pointerEvents = "none";
-          progressInfoCard.style.marginTop = "0px";
-        } else if (percentageSeek < 10) {
-          progressInfoCard.style.display = "block";
-          progressInfoCard.style.pointerEvents = "none";
-          progressInfoCard.style.marginTop = "30px";
-        } else {
-          progressInfoCard.style.display = "block";
-          progressInfoCard.style.pointerEvents = "none";
-          progressInfoCard.style.marginTop = "0px";
-        }
-      }
+      const posX = e.clientX - progressBar.getBoundingClientRect().x;
+      const percentageSeek = Math.ceil(
+        (posX / window.getComputedStyle(progressBar).width.substring(0, 3)) *
+          100
+      );
+      this.hoverTime = this.timeFormatter(
+        (percentageSeek * audio.duration) / 100
+      );
+      document.querySelector("#hoverTime").style.left = `${percentageSeek -
+        3}%`;
     });
   },
 };
 </script>
 
 <style lang="scss">
-.traditionalLayout {
-  .TrackBar {
-    position: absolute;
-    left: 32.5%;
-    transform: rotate(90deg);
-    z-index: 50;
-    bottom: -330px;
-    background: none;
-    .progressInfoCard {
-      display: none;
-    }
-    .seekBar {
-      transform: rotate(180deg);
-      background: #ffffff25;
-    }
-    #pauseBt {
-      transform: scale(0.9) rotate(-90deg);
-    }
-  }
-}
 .TrackBar {
-  position: absolute;
+  position: relative;
   z-index: 25;
-  left: 0px;
-  transform: translateX(-100%);
-  height: 100vh;
-  width: 30px;
-  padding-top: 10px;
-  padding-right: 8px;
-  background: #0f0f0f;
+  width: 100%;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  transform: translateY(20%);
 }
 
 .seekBar {
-  background: #1b1b1b;
-  min-height: 93%;
-  margin: auto;
-  margin-bottom: 5px;
-  margin-left: 10px;
-  width: 10px;
+  background: #00000069;
+  width: 100%;
+  height: 10px;
   position: relative;
   border-radius: 10px;
   .seekProgress {
     border-radius: 10px;
     position: absolute;
-    height: 0%;
+    height: 100%;
     max-height: 100%;
-    width: 100%;
+    width: 0%;
     background: #006eff;
     transition: 0.2s linear;
   }
@@ -248,6 +179,10 @@ export default {
   cursor: pointer;
   .progressInfoCard {
     opacity: 1;
+  }
+  #hoverTime {
+    transform: translateY(-130%) !important;
+    opacity: 1 !important;
   }
 }
 
@@ -258,9 +193,6 @@ export default {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  margin-left: 0px;
-  margin-top: 10px;
-  margin-bottom: 5px;
 }
 .iconsWrapper:hover {
   cursor: pointer;
@@ -272,34 +204,31 @@ export default {
 }
 .progressInfoCard {
   position: absolute;
-  right: -50%;
-  transform: scale(1) translateX(100%);
-  transform-origin: center;
-  opacity: 0;
-  pointer-events: none;
   display: flex;
-  justify-content: center;
-  align-items: flex-start;
+  justify-content: space-between;
   transition: 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-  width: 130px;
-  .progressInfoWrapper {
-    position: relative;
-    z-index: 10;
-    background: #006eff;
-    border-radius: 10px;
-    color: rgb(255, 255, 255);
-    padding: 5px;
-    font-size: 0.8rem;
-    box-shadow: 4px 4px 8px rgba(0, 0, 0, 0.404);
-    div {
-      margin-bottom: 2px;
-      display: flex;
-      justify-content: space-between;
-      span {
-        margin-left: 5px;
-        font-weight: 600;
-      }
-    }
+  width: 100%;
+  top: 0%;
+  left: 0%;
+  transform: translateY(-10%);
+  p {
+    font-family: roboto-light;
+    font-size: 0.8em;
   }
+}
+#hoverTime {
+  position: absolute;
+  top: 0;
+  transform: translateY(-50%);
+  opacity: 0;
+  left: 0%;
+  z-index: 2;
+  font-family: roboto-light;
+  font-size: 0.8em;
+  padding: 2px 5px 2px 5px;
+  border-radius: 10px;
+  text-align: center;
+  background: rgb(0, 0, 0);
+  pointer-events: none;
 }
 </style>

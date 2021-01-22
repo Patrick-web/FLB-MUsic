@@ -1,21 +1,12 @@
 <template>
   <div class="vMenu">
-    <div class="activeFeatureIndicator"></div>
-    <div
-      @click="switchFeature($event, 'player')"
-      id="playerFeaturebtn"
-      class="tabActive vmenu-group"
-    >
-      <img src="@/assets/play-circle.svg" alt />
-      <p style="padding-left:25px" class="v-tooltip">Player</p>
-    </div>
-    <div @click="switchFeature($event, 'gems')" class="vmenu-group">
-      <img class="whiten" src="@/assets/gem.svg" alt />
-      <p style="padding-left:30px" class="v-tooltip">Gems</p>
-    </div>
     <div @click="toggleAddOptions()" class="vmenu-group">
       <img src="@/assets/plus.svg" alt />
-      <p class="v-tooltip">Add Music</p>
+      <p style="width:100px" class="v-tooltip">Add Music</p>
+    </div>
+    <div class="vmenu-group">
+      <img class="whiten" src="@/assets/gem.svg" alt />
+      <p style="width:60px" class="v-tooltip">Gems</p>
     </div>
     <div class="addOptions animated faster">
       <div class="opts">
@@ -30,6 +21,21 @@
       </div>
       <button @click="toggleAddOptions">Cancel</button>
     </div>
+    <div class="vmenu-group">
+      <img
+        @click="showSettings"
+        src="@/assets/settings.svg"
+        alt=""
+        class="tool vmenu-group"
+        id="settingsBt"
+        data-tip="Settings"
+      />
+      <p style="width:80px" class="v-tooltip">Settings</p>
+    </div>
+    <div class="vmenu-group">
+      <img @click="showUpdates" src="@/assets/update.svg" alt="" />
+      <p style="width:80px" class="v-tooltip">Updates</p>
+    </div>
   </div>
 </template>
 
@@ -39,25 +45,12 @@ import { mapMutations } from "vuex";
 export default {
   methods: {
     ...mapMutations(["loadPreviouslyAddedTracks"]),
-    switchFeature(e, tab) {
-      document.body.classList.remove("showPodcastData");
-      const indicator = document.querySelector(".activeFeatureIndicator");
-      const element = e.currentTarget;
-      //   const pagesWrapper = document.querySelector(".pagesWrapper");
-      document.querySelector(".tabActive").classList.remove("tabActive");
-      element.classList.add("tabActive");
-      document.querySelector(".MainGrid").classList.add("currentFeatureIsGems");
-      switch (tab) {
-        case "player":
-          indicator.style.top = "12.5%";
-          document
-            .querySelector(".MainGrid")
-            .classList.remove("currentFeatureIsGems");
-          break;
-        case "gems":
-          indicator.style.top = "48%";
-          break;
-      }
+    showSettings() {
+      document.querySelector(".Settings").classList.toggle("ModalShow");
+      document.querySelector(".MainGrid").classList.remove("showUpdates");
+    },
+    showUpdates() {
+      document.querySelector(".MainGrid").classList.toggle("showUpdates");
     },
     emitOption(choice) {
       if (choice === "file") {
@@ -84,7 +77,7 @@ export default {
 }
 .vMenu {
   align-self: center;
-  border-radius: 50px;
+  border-radius: 20px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -92,8 +85,8 @@ export default {
   position: relative;
   z-index: 8;
   width: 50px;
-  background: #141414;
-  height: 200px;
+  background: #0f0f0f3f;
+  height: 250px;
   padding: 5px;
   padding-top: 10px;
   padding-bottom: 10px;
@@ -110,8 +103,8 @@ export default {
       transition: 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
       font-weight: 600;
       color: black;
-      width: 100px;
       border-radius: 20px;
+      text-align: center;
     }
   }
   .vmenu-group:hover {
@@ -151,7 +144,8 @@ export default {
   top: 43%;
   left: 35%;
   transform: translate(-50%, -50%);
-  background: rgb(31, 31, 31);
+  background-color: rgba(0, 0, 0, 0.39);
+  backdrop-filter: blur(10px);
   padding: 10px;
   border-radius: 20px;
   box-shadow: 0px 0px 50px black;

@@ -1,5 +1,6 @@
 <template>
   <div @click="cleanUp" class="MainGrid">
+    <img :src="playingTrack.cover" id="bg_fancy" alt="" />
     <img
       id="logo"
       @click="togglePersonalInfo"
@@ -12,24 +13,13 @@
     <PlaylistAdder />
     <div class="featuresSwitcherArea">
       <FeaturesSwitcher />
-      <img
-        @click="showSettings"
-        src="@/assets/settings.svg"
-        alt=""
-        id="settingsBt"
-      />
-      <img
-        @click="showUpdates"
-        src="@/assets/update.svg"
-        alt=""
-        id="updatesBt"
-      />
       <Settings />
     </div>
     <div class="centralArea">
+      <!-- <Gems /> -->
       <TitleArea />
       <TabSwitcher />
-      <div @click="hideGems" class="tabsWrapper">
+      <div class="tabsWrapper">
         <TracksTab />
         <PlaylistsTab />
         <RecentsTab />
@@ -37,7 +27,6 @@
         <ArtistsTab />
         <DiscoverTab />
       </div>
-      <Gems />
       <transition
         enter-active-class="animated faster slideInDown"
         leave-active-class="animated extrafaster slideOutUp"
@@ -46,16 +35,8 @@
       </transition>
     </div>
     <div v-if="playingTrack.title" class="playingPaneArea">
-      <div class="tabber">
-        <div @click="hideQueue($event)" class="activeTab playingTabIcon">
-          <img src="@/assets/music_note.svg" alt="" />
-        </div>
-        <div @click="showQueue($event)" class="queueTabIcon">
-          <img src="@/assets/queue_music.png" alt="" />
-        </div>
-      </div>
       <PlayingPane />
-      <QueuedTracks />
+      <SidePane />
     </div>
   </div>
 </template>
@@ -66,8 +47,8 @@ import TabSwitcher from "@/components/TabSwitcher.vue";
 import TitleArea from "@/components/TitleArea.vue";
 import FeaturesSwitcher from "@/components/FeaturesSwitcher.vue";
 import PlayingPane from "@/components/PlayingPane.vue";
+import SidePane from "@/components/SidePane/SidePane.vue";
 import PlaylistAdder from "@/components/PlaylistAdder.vue";
-import QueuedTracks from "@/components/QueuedTracks.vue";
 import Gems from "@/components/Gems.vue";
 import Profile from "@/components/Profile.vue";
 import Settings from "@/components/Settings.vue";
@@ -89,8 +70,8 @@ export default {
     TitleArea,
     FeaturesSwitcher,
     PlayingPane,
+    SidePane,
     PlaylistAdder,
-    QueuedTracks,
     Gems,
     Profile,
     Settings,
@@ -126,22 +107,9 @@ export default {
       "clearRecentsAndPlaylists",
       "addToRecents",
     ]),
-    showSettings() {
-      document.querySelector(".Settings").classList.toggle("ModalShow");
-      document.querySelector(".MainGrid").classList.remove("showUpdates");
-    },
-    showUpdates() {
-      document.querySelector(".MainGrid").classList.toggle("showUpdates");
-    },
     togglePersonalInfo() {
       document.body.classList.toggle("showInfo");
       document.querySelector("#logo").classList.remove("animated");
-    },
-    hideGems() {
-      document.querySelector("#playerFeaturebtn").click();
-      document
-        .querySelector(".featuresSwitcherArea")
-        .classList.remove("showSettings");
     },
     cleanUp() {
       if (document.querySelector(".showOptions")) {
@@ -250,11 +218,11 @@ body {
   overflow: hidden;
 }
 ::-webkit-scrollbar {
-  background: black;
+  background: rgba(0, 0, 0, 0.199);
   width: 5px;
 }
 ::-webkit-scrollbar-track-piece {
-  background: black;
+  background: rgba(0, 0, 0, 0.514);
 }
 ::-webkit-scrollbar-thumb {
   background: rgb(255, 255, 255);
@@ -263,7 +231,9 @@ body {
 .MainGrid {
   display: grid;
   grid-template-columns: 0.2fr 4fr 1.2fr;
-  column-gap: 50px;
+  .featuresSwitcherArea {
+    margin-right: 30px;
+  }
   #logo {
     position: fixed;
     width: 40px;
@@ -273,6 +243,14 @@ body {
   }
   #logo:hover {
     cursor: pointer;
+  }
+  #bg_fancy {
+    position: fixed;
+    top: -50%;
+    left: 0;
+    width: 120%;
+    filter: blur(20px);
+    opacity: 0.5;
   }
 }
 .noMusic {
@@ -360,12 +338,14 @@ body {
   padding-top: 10px;
 }
 .expanded {
+  margin: 10px;
+  border-radius: 10px;
+  overflow: hidden;
   .body {
-    max-height: 280px !important;
-    padding: 10px;
+    max-height: 380px !important;
   }
   .titleArea {
-    box-shadow: 0px 8px 5px rgb(0, 0, 0) !important;
+    box-shadow: 0px 10px 8px rgba(0, 0, 0, 0.438) !important;
     background: #0062ff !important;
     .expandIcon {
       transform: rotate(180deg);
@@ -424,7 +404,7 @@ body {
   }
 }
 .ExpansionPanel {
-  background: #070707;
+  background: #00000054;
   color: white;
   font-family: roboto-light;
   margin-bottom: 1px;
@@ -440,10 +420,10 @@ body {
     justify-content: space-between;
     align-items: center;
     padding: 10px;
-    box-shadow: 0px 0px 10px rgba(0, 0, 0, 0);
     position: relative;
     cursor: pointer;
     z-index: 2;
+    transition: none;
     .expandIcon {
       width: 20px;
       cursor: pointer;
@@ -453,79 +433,18 @@ body {
 }
 .ExpansionPanel:hover {
   .titleArea {
-    background: #0062ff;
+    font-weight: 800;
   }
 }
 .traditionalLayout {
   .playingPaneArea {
-    .tabber {
-      left: initial;
-      right: 10px;
-      top: 0px;
-      transform: scale(0.8) translateY(-50%);
-    }
   }
 }
 .playingPaneArea {
   position: relative;
-  padding-top: 10px;
-
-  .tabber {
-    margin: auto;
-    display: flex;
-    align-items: stretch;
-    justify-content: stretch;
-    backdrop-filter: blur(10px);
-    background-color: rgba(70, 70, 70, 0.274);
-    width: 60px;
-    position: absolute;
-    z-index: 21;
-    border-radius: 10px;
-    top: 6px;
-    left: 40%;
-    overflow: hidden;
-    div {
-      padding: 5px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-    }
-    img {
-      width: 20px;
-    }
-    .activeTab {
-      background: #0062ff;
-    }
-  }
 }
 .discoverTab {
   padding-top: 0px;
   height: 100vh;
-}
-.traditionalLayout {
-  #settingsBt,
-  #updatesBt {
-    bottom: 150px;
-  }
-  #updatesBt {
-    bottom: 110px;
-  }
-}
-#settingsBt,
-#updatesBt {
-  position: absolute;
-  bottom: 20px;
-  width: 30px;
-  margin-left: 10px;
-  cursor: pointer;
-  z-index: 51;
-}
-#settingsBt,
-#updatesBt:hover {
-  transform: rotate(45deg);
-}
-#updatesBt {
-  bottom: 60px;
 }
 </style>

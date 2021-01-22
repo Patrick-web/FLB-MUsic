@@ -1,6 +1,10 @@
 <template>
   <div class="Gems">
-    <div class="converter">
+    <div class="gemTabber">
+      <p class="activeGemTab">FLBing</p>
+      <p>Converter</p>
+    </div>
+    <div v-if="currentGem == 'converter'" class="converter">
       <h1>Video to Mp3</h1>
       <p id="selectedVideo">
         {{ videoToConvert }}
@@ -16,43 +20,23 @@
       </button>
       <div class="outputs"></div>
     </div>
-    <hr />
-    <div class="callToCommunity">
-      <p>I'm currently working on some more gems💎 like...</p>
-      <div>
-        <pre>🎵🥂🎵 Merging audio Files</pre>
-        <pre>🌐🔊 Streaming audio from Network URL</pre>
-        <pre>📥📥  Download Music from Deezer 🔥🔥</pre>
-        <pre>📔🖊️  Lyrics Maker (this one am not quite sure)</pre>
-        <pre>🤫 And others 🤫</pre>
-      </div>
-      <p>
-        So hit me up on twitter🐤 and tell me....something, anything, anything
-        at all (Damn, that sounds desperate)
-      </p>
-      <p>
-        Hit me up or I'll delete your Music 👿. Ok, ok, relax, am just joking
-        🤥. Or am I 💔 ...
-      </p>
-      <p>
-        Ok. Am Bored. So am just adding some stupid stuff. Blah blah blah buga
-        buga bada boom boom meow meow el solo lobo el casa blanco ? Aaaah
-        whatever
-      </p>
-    </div>
+    <FLBing />
   </div>
 </template>
 
 <script>
 const electron = window.require("electron");
-
+import FLBing from "@/components/FLBing/FLBing.vue";
 export default {
   data() {
     return {
+      currentGem: "FLBBing",
       videoToConvert: "No Video Imported  📽",
     };
   },
-  components: {},
+  components: {
+    FLBing,
+  },
   methods: {
     importVideo() {
       electron.ipcRenderer.send("importVideoForConversion");
@@ -107,16 +91,31 @@ export default {
 <style lang="scss">
 .Gems {
   position: absolute;
-  top: 50%;
-  left: 5%;
-  transform: translate(-50%, -50%) scale(0);
+  top: 0%;
+  height: 100vh;
+  left: 0%;
   z-index: 50;
-  padding: 10px;
-  border-radius: 15px;
   background: #171717;
   box-shadow: 0px 0px 50px black;
-  max-width: 430px;
-  pointer-events: none;
+  width: 100%;
+  .gemTabber {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    background: black;
+    margin: auto;
+    border-radius: 20px;
+    position: sticky;
+    width: 150px;
+    overflow: hidden;
+    transform: translateY(50%);
+    p {
+      padding: 8px;
+      cursor: pointer;
+    }
+    .activeGemTab {
+      background: rgb(0, 102, 255);
+    }
+  }
   hr {
     border: 1px solid #ffffff1c;
     height: 1px;
@@ -153,27 +152,6 @@ export default {
         height: 100%;
         width: 10%;
       }
-    }
-  }
-  .callToCommunity {
-    h3 {
-      font-weight: 300;
-      margin-bottom: 10px;
-    }
-    div {
-      margin-left: 5px;
-    }
-    hr {
-      margin-bottom: 2px;
-      margin-top: 2px;
-    }
-    pre {
-      font-size: 1.1em;
-      padding: 5px;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.185);
-    }
-    p {
-      font-family: "Courier New", Courier, monospace;
     }
   }
 }

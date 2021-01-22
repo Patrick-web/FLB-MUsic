@@ -24,7 +24,6 @@ export default {
       "populateByAlbumGroup",
     ]),
     moveIndicator(pos) {
-      const indicator = document.querySelector(".indicator");
       const tabsWrapper = document.querySelector(".tabsWrapper");
       if (
         document.querySelector(".MainGrid").classList.contains("tabIsDiscover")
@@ -36,7 +35,6 @@ export default {
       }
       switch (pos) {
         case "addedTracks":
-          indicator.style.left = "0%";
           document.querySelector(".activeTab").classList.remove("activeTab");
           document.querySelector(`#${pos}`).classList.add("activeTab");
           tabsWrapper.style.transform = "translateX(0%)";
@@ -44,21 +42,18 @@ export default {
           //resume playing if coming from streamer
           break;
         case "playlists":
-          indicator.style.left = "17%";
           document.querySelector(".activeTab").classList.remove("activeTab");
           document.querySelector(`#${pos}`).classList.add("activeTab");
           tabsWrapper.style.transform = "translateX(-16.65%)";
           document.querySelector(".clearer").click();
           break;
         case "recentsTracks":
-          indicator.style.left = "34%";
           document.querySelector(".activeTab").classList.remove("activeTab");
           document.querySelector(`#${pos}`).classList.add("activeTab");
           tabsWrapper.style.transform = "translateX(-33.32%)";
           this.switchTab(pos);
           break;
         case "albums":
-          indicator.style.left = "51%";
           document.querySelector(".activeTab").classList.remove("activeTab");
           document.querySelector(`#${pos}`).classList.add("activeTab");
           tabsWrapper.style.transform = "translateX(-50%)";
@@ -67,7 +62,6 @@ export default {
           }, 500);
           break;
         case "artists":
-          indicator.style.left = "67.5%";
           document.querySelector(".activeTab").classList.remove("activeTab");
           document.querySelector(`#${pos}`).classList.add("activeTab");
           tabsWrapper.style.transform = "translateX(-66.65%)";
@@ -76,7 +70,7 @@ export default {
           }, 500);
           break;
         case "discover":
-          indicator.style.left = "85.1%";
+          this.switchTab("discoverTab");
           document.querySelector(".activeTab").classList.remove("activeTab");
           document.querySelector(`#${pos}`).classList.add("activeTab");
           tabsWrapper.style.transform = "translateX(-83.3%)";
@@ -120,11 +114,10 @@ export default {
   }
 }
 .Tabswitcher {
-  background: #141414;
+  background: #1414146c;
   display: grid;
   grid-template-columns: 1fr 1fr 1fr 1fr 1fr 1fr;
   column-gap: 10px;
-  border-radius: 20px;
   margin-bottom: 10px;
   position: relative;
   overflow: hidden;
@@ -140,25 +133,14 @@ export default {
     font-family: roboto-light;
   }
   p:hover {
-    color: #1c73ff;
+    font-weight: 800;
   }
   .activeTab {
     font-weight: 800;
+    border-bottom: 2px solid white;
   }
   .activeTab:hover {
     color: white !important;
-  }
-  .indicator {
-    position: absolute;
-    border-radius: 50px;
-    z-index: 1;
-    left: 0;
-    top: 0;
-    width: 140px;
-    height: 100%;
-    background: #0062ff;
-    transform-origin: center;
-    transition: 0.2s ease-in-out;
   }
 }
 @media (max-width: 700px) {

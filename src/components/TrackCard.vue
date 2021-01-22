@@ -18,20 +18,20 @@
       src="@/assets/trash-bin-outline.svg"
       alt=""
     />
-    <img class="cover" :src="cover" alt="" />
+    <img class="cover" :src="track.cover" alt="" />
     <div class="info">
       <p class="trackTitle">
-        {{
-          title
-            .replace(".m4a", "")
-            .replace(".mp3", "")
-            .replace(".ogg", "")
-            .replace(".wav", "")
-        }}
+        {{ track.title }}
       </p>
       <div class="grid2">
-        <div class="artist">{{ artist }}</div>
-        <div class="duration">{{ length }}</div>
+        <div class="artist">{{ track.artist }}</div>
+        <div class="duration" v-if="track.duration">
+          {{ JSON.stringify(track.duration).toHHMMSS() }}
+        </div>
+        <div class="duration" v-if="!track.duration">_ _ : _ _</div>
+        <div class="dateAdded" v-if="track.dateAdded">
+          {{ track.dateAdded }}
+        </div>
       </div>
     </div>
     <div class="options">
@@ -62,20 +62,9 @@ export default {
     ...mapGetters(["queuedTracks"]),
   },
   data() {
-    return {
-      trackInfo: "",
-    };
+    return {};
   },
-  mounted() {
-    this.trackInfo = {
-      title: this.title,
-      artist: this.artist,
-      length: this.length,
-      cover: this.cover,
-      album: this.album,
-      path: this.path,
-    };
-  },
+  mounted() {},
   methods: {
     ...mapMutations([
       "setPlayingTrack",
@@ -89,7 +78,7 @@ export default {
     ]),
     showOptions(e) {
       e.preventDefault();
-      this.selectATrack(this.trackInfo);
+      this.selectATrack(this.track);
       if (document.querySelector(".showOptions"))
         document.querySelector(".showOptions").classList.remove("showOptions");
       e.currentTarget.classList.add("showOptions");
@@ -114,7 +103,7 @@ export default {
         color: "success",
         position: "top-right",
         title: "Added to Favourites",
-        text: `${this.trackInfo.title} added to Favourites`,
+        text: `${this.track.title} added to Favourites`,
       });
       this.hideOptions(track);
     },
@@ -129,7 +118,7 @@ export default {
         color: "success",
         position: "top-right",
         title: "Playing Next",
-        text: `${this.trackInfo.title}`,
+        text: `${this.track.title}`,
       });
       this.hideOptions(track);
     },
@@ -148,8 +137,8 @@ export default {
       }
       const track = e.currentTarget;
       track.classList.add("playingtrack");
-      this.setPlayingTrack(this.trackInfo);
-      this.addToRecents(this.trackInfo);
+      this.setPlayingTrack(this.track);
+      this.addToRecents(this.track);
       //Pause webview
       const webview = document.querySelector("webview");
       if (webview) {
@@ -174,12 +163,12 @@ export default {
     queueTrack(e) {
       document.querySelector(".queueTabIcon").click();
       const track = e.currentTarget.parentElement.parentElement;
-      this.addToQueue(this.trackInfo);
+      this.addToQueue(this.track);
       const n2 = this.$vs.notify({
         color: "success",
         position: "top-center",
         title: "Added to Queue",
-        text: `${this.title}`,
+        text: `${this.track.title}`,
       });
       track.classList.add("queued");
       this.hideOptions(track);
@@ -189,16 +178,11 @@ export default {
     },
     bulkSelectTrack(e) {
       e.currentTarget.parentElement.classList.toggle("bulkSelected");
-      this.bulkSelect(this.trackInfo);
+      this.bulkSelect(this.track);
     },
   },
   props: {
-    title: String,
-    artist: String,
-    length: String,
-    cover: String,
-    album: String,
-    path: String,
+    track: Object,
     trackIndex: Number,
     playlistIndex: Number,
   },
@@ -293,30 +277,30 @@ export default {
   pointer-events: none;
   border-radius: 20px;
   width: 220px;
+  background-color: #0000006b;
+  backdrop-filter: blur(10px);
   overflow: hidden;
-  box-shadow: 0px 0px 8px rgba(0, 0, 0, 0.589) !important;
+  box-shadow: 0px 0px 15px rgba(0, 0, 0, 0.349) !important;
   transition: 0.1s transform ease;
   .option {
-    background: #171717;
     padding: 8px;
     padding-left: 10px;
-    border-bottom: 1px solid #2e2e2e;
     font-family: roboto-light;
     cursor: pointer;
     transition: 0.2s ease;
     img {
-      // width: 20px;
       margin-right: 10px;
     }
   }
   .option:hover {
-    background: #2b2b2b;
-    border-bottom: 1px solid #2b2b2b;
+    background-color: #ffffff1e;
+    border-radius: 20px;
+    margin: 5px;
   }
 }
 .TrackCard {
   position: relative;
-  background: #0f0f0f;
+  background: #0f0f0f7e;
   border-bottom: 1px solid rgba(128, 128, 128, 0.356);
   display: flex;
   color: white;
@@ -331,15 +315,18 @@ export default {
     left: -28px;
     transform: translateY(-50%);
     z-index: 4;
-    background: black;
-    border: 1px solid rgba(255, 255, 255, 0.733);
+    background: rgba(0, 0, 0, 0.466);
+    border: 1px solid rgba(255, 255, 255, 0.452);
     width: 20px;
     height: 20px;
     opacity: 0;
   }
   .cover {
-    width: 100px;
+    width: 50px;
+    transform: scale(0.9);
     transition: 0.2s ease;
+    justify-self: center;
+    align-self: center;
   }
   p {
     font-size: 1.2em;
@@ -391,11 +378,26 @@ export default {
     cursor: pointer;
     z-index: 4;
   }
+  .dateAdded {
+    display: none;
+  }
 }
-.compactMode {
+.tableLayout {
   .TrackCard {
-    display: flex;
-    align-items: center;
+    .info {
+      display: grid;
+      grid-template-columns: 4fr 3fr;
+      align-items: center;
+      gap: 10px;
+    }
+    .grid2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr 0.5fr;
+      gap: 10px;
+    }
+    .dateAdded {
+      display: block;
+    }
     .cover {
       width: 50px;
       transform: scale(0.9);
@@ -405,9 +407,6 @@ export default {
     }
     p {
       font-size: 1em;
-    }
-    .grid2 {
-      display: none;
     }
   }
 }

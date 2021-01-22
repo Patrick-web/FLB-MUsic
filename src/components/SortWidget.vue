@@ -4,7 +4,9 @@
     <img id="sortIcon" src="@/assets/sort.svg" alt="" />
     <section class="hiddenActions animated faster sortParams">
       <p @click.stop="sortBy($event, 'title')">By Name</p>
+      <p @click.stop="sortBy($event, 'artist')">By Artist</p>
       <p @click.stop="sortBy($event, 'duration')">By Length</p>
+      <p @click.stop="sortBy($event, 'dateAdded')">By Date</p>
     </section>
     <div
       @click.stop="toggleSortBy"
@@ -53,5 +55,9 @@ export default {
 <style lang="scss">
 .flipped {
   transform: rotateY(180deg);
+}
+.hiddenActions {
+  display: none;
+  box-shadow: 0px 0px 50px black;
 }
 </style>

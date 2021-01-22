@@ -10,8 +10,13 @@
         @contextmenu="showPlaylistOptions($event)"
         @click="toggleExpansion($event)"
       >
-        <p>{{ playlist.name }}</p>
-        <img class="expandIcon" src="@/assets/arrowDown.svg" alt="" />
+        <p style="pointer-events:none">{{ playlist.name }}</p>
+        <img
+          style="pointer-events:none"
+          class="expandIcon"
+          src="@/assets/arrowDown.svg"
+          alt=""
+        />
         <div
           style="max-width:150px"
           v-if="playlist.name !== 'Favorites'"
@@ -41,12 +46,7 @@
         </div>
         <transition-group>
           <TrackCard
-            :cover="track.cover"
-            :album="track.album"
-            :title="track.title"
-            :artist="track.artist"
-            :length="track.formatedLength"
-            :path="track.path"
+            :track="track"
             :trackIndex="index"
             :playlistIndex="plIndex"
             v-for="(track, index) in playlist.tracks"
@@ -141,7 +141,7 @@ export default {
   },
   mounted() {
     setTimeout(() => {
-      this.loadPlaylistsFromDB();
+      // this.loadPlaylistsFromDB();
     }, 2000);
     electron.ipcRenderer.on("addPlaylist", (event, playlists) => {
       this.addPlaylist(playlists);

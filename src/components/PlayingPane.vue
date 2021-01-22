@@ -1,117 +1,74 @@
 <template>
   <div class="playingPane animated faster">
     <div v-if="!playingTrack.title" class="noMusicPlaying"></div>
-    <div class="trackTags animated faster">
-      <img id="coverArtTag" :src="playingTrack.cover" alt="" />
-      <h4 @click="importCover" id="selectCoverArt">Import Cover Art</h4>
-      <div>
-        <h4>Name</h4>
-        <p
-          id="titleTag"
-          class="inputElem"
-          @change="changeAlbumSearchQuery"
-          contenteditable
-        >
-          {{ playingTrack.title }}
-        </p>
-      </div>
-      <div>
-        <h4>Artist</h4>
-        <p contenteditable class="inputElem" id="artistTag">
-          {{ playingTrack.artist }}
-        </p>
-      </div>
-      <div>
-        <h4>Album</h4>
-        <p contenteditable class="inputElem" id="albumTag">
-          {{ playingTrack.album }}
-        </p>
-      </div>
-      <div class="possibleCovers">
-        <button @click="openCoverSearcher">
-          <h3 style="text-align:center">Open Cover Searcher📔</h3>
-        </button>
-        <br />
-        <div
-          v-if="possibleThumbnails.length == 0 && isOnline"
-          class="loadingArea"
-        >
-          <div class="loadingIndicator"></div>
-        </div>
-        <img
-          v-for="cover in possibleThumbnails"
-          :key="cover.url"
-          :src="cover.url"
-          alt=""
-          @click="selectCover(cover.url)"
-        />
-      </div>
-    </div>
     <img :src="playingTrack.cover" alt="" id="blurred" />
     <img id="cover" :src="playingTrack.cover" alt="" />
-    <div class="songInfo">
-      <p id="songName">{{ playingTrack.title }}</p>
-      <p class="trackAdditionalInfo" v-if="playingTrack.artist">
-        Artist : <span id="artistName">{{ playingTrack.artist }}</span>
-      </p>
-      <p class="trackAdditionalInfo" v-if="playingTrack.album">
-        Album : <span id="albumName">{{ playingTrack.album }}</span>
-      </p>
-    </div>
-
-    <div class="editModeBtns animated faster">
-      <p @click="saveChanges" id="saveChanges">Save Changes</p>
-      <p @click="exitEditMode" id="exitEditMode">Exit Edit Mode</p>
-    </div>
-
-    <canvas v-if="settings.visualizer" id="visualizerArea"></canvas>
-    <div class="volumeRockerArea">
-      <img src="@/assets/volume_down.svg" alt="" />
-      <input
-        class="inputElem"
-        @change="adjustVolume"
-        v-model="volume"
-        type="range"
-        min="0"
-        max="1"
-        step="0.1"
-        name=""
-        id=""
+    <div @click="toggleIsPlaying" id="pauseBt" class="iconsWrapper">
+      <img
+        v-if="!isPlaying"
+        class="toggleIcons playIcon"
+        src="@/assets/playButton.svg"
+        alt
+      />
+      <img
+        v-if="isPlaying"
+        class="toggleIcons pauseIcon"
+        src="@/assets/pause.svg"
+        alt
       />
     </div>
-
-    <div class="p_options" v-if="playingTrack.title">
-      <div @click="showPlaylistAdder" class="iconBt">
-        <img id="plIcon" src="@/assets/playlist_add.svg" alt="" />
+    <div class="trackData">
+      <div class="trackInfo">
+        <p id="trackName">{{ playingTrack.title }}</p>
+        <p @click="showArtistData" id="artistName">{{ playingTrack.artist }}</p>
       </div>
-      <div @click="enterEditMode" id="penIcon" class="iconBt">
-        <img src="@/assets/edit.svg" alt="" />
-      </div>
-      <div @click="toggleRepeatMode" id="repeatIcon" class="iconBt">
-        <img id="plIcon" src="@/assets/repeat_one.svg" alt="" />
-      </div>
-      <div @click="toggleShuffleMode" id="shuffleIcon" class="iconBt">
-        <img src="@/assets/shuffle.svg" alt="" />
-      </div>
+      <TrackBar />
     </div>
 
-    <div v-if="playingTrack.title" class="controls">
-      <div @click="playPrev" id="prevTrackBt" class="iconBt">
-        <img
-          style="transform:rotate(-180deg)"
-          src="@/assets/play_arrow.svg"
-          alt=""
+    <div class="controls">
+      <div class="volumeRockerArea">
+        <img src="@/assets/volume_down.svg" alt="" />
+        <input
+          class="inputElem"
+          @change="adjustVolume"
+          v-model="volume"
+          type="range"
+          min="0"
+          max="1"
+          step="0.1"
+          name=""
+          id=""
         />
       </div>
-      <div @click="toggleFromFavourites" id="favorIcon" class="iconBt">
-        <img width="18px" src="@/assets/flash-outline.png" alt="" />
+
+      <div v-if="playingTrack.title" class="control play_controls">
+        <div @click="playPrev" id="prevTrackBt" class="iconBt">
+          <img
+            style="transform:rotate(-180deg)"
+            src="@/assets/play_arrow.svg"
+            alt=""
+          />
+        </div>
+        <div @click="toggleFromFavourites" id="favorIcon" class="iconBt">
+          <img width="18px" src="@/assets/flash-outline.png" alt="" />
+        </div>
+        <div id="nextTrackBt" @click="determineNextTrack" class="iconBt">
+          <img src="@/assets/play_arrow.svg" alt="" />
+        </div>
       </div>
-      <div id="nextTrackBt" @click="determineNextTrack" class="iconBt">
-        <img src="@/assets/play_arrow.svg" alt="" />
+      <div class="control extra_controls" v-if="playingTrack.title">
+        <div @click="showPlaylistAdder" class="iconBt">
+          <img id="plIcon" src="@/assets/playlist_add.svg" alt="" />
+        </div>
+        <div @click="toggleRepeatMode" id="repeatIcon" class="iconBt">
+          <img id="plIcon" src="@/assets/repeat_one.svg" alt="" />
+        </div>
+        <div @click="toggleShuffleMode" id="shuffleIcon" class="iconBt">
+          <img src="@/assets/shuffle.svg" alt="" />
+        </div>
       </div>
     </div>
-    <CoverSearcher />
-    <TrackBar />
+    <!-- <CoverSearcher /> -->
   </div>
 </template>
 
@@ -126,7 +83,12 @@ const electron = window.require("electron");
 
 export default {
   computed: {
-    ...mapGetters(["playingTrack", "indexInFavorites", "settings"]),
+    ...mapGetters([
+      "playingTrack",
+      "isPlaying",
+      "indexInFavorites",
+      "settings",
+    ]),
   },
   data() {
     return {
@@ -149,9 +111,14 @@ export default {
       "removeSelectedTrackToPlaylist",
       "setRepeat",
       "toggleShuffler",
+      "toggleIsPlaying",
     ]),
     adjustVolume() {
       document.querySelector("audio").volume = this.volume;
+    },
+    showArtistData() {
+      document.querySelector("#artists").click();
+      document.querySelector("#search").value = this.playingTrack.artist;
     },
     playPrev() {
       const prevTrack = document.querySelector(".playingtrack").previousSibling;
@@ -252,35 +219,6 @@ export default {
         position: "top-center",
         title: `Repeat ${state}`,
       });
-    },
-    saveChanges() {
-      const title = document.querySelector("#titleTag").textContent.trim();
-      const artist = document.querySelector("#artistTag").textContent;
-      const album = document.querySelector("#albumTag").textContent;
-      let cover = document.querySelector("#coverArtTag").src;
-      let tags = {};
-      if (title != this.playingTrack.title.trim()) {
-        tags["title"] = title;
-      }
-      if (artist != this.playingTrack.artist) {
-        tags["artist"] = artist;
-      }
-      if (album != this.playingTrack.album) {
-        tags["album"] = album;
-      }
-      if (cover != this.playingTrack.cover) {
-        tags.APIC = document.querySelector("#coverArtTag").src;
-      }
-      const data = {
-        path: this.playingTrack.path.replace("file://", ""),
-        tags: tags,
-      };
-      console.log(Object.keys(data.tags).length);
-      if (Object.keys(data.tags).length !== 0) {
-        electron.ipcRenderer.send("updateTrackInfo", data);
-        console.log("=======sent======");
-      }
-      this.exitEditMode();
     },
     toggleFromFavourites() {
       this.selectATrack();
@@ -396,109 +334,37 @@ export default {
     z-index: 5;
   }
 }
-.traditionalLayout {
-  grid-template-columns: 0.2fr 4fr !important;
-  padding-right: 80px;
-  .playingPaneArea {
-    position: fixed;
-    z-index: 80;
-    width: 100vw;
-    height: 100px;
-    bottom: 0px;
-    #songName {
-      transform: translateY(-50%);
-    }
-    .trackAdditionalInfo {
-      display: none;
-    }
-    #visualizerArea {
-      width: auto;
-      height: auto;
-      right: -50px;
-      bottom: -30px;
-      transform: scale(0.6);
-    }
-  }
-  .playingPane {
-    overflow: hidden;
-    height: 100px;
-    background-color: rgb(0, 0, 0);
-    box-shadow: 0px 0px 20px black;
-    max-width: 100%;
-    display: grid;
-    grid-template-columns: 1fr 14fr;
-    align-items: center;
-    justify-content: center;
-    #cover {
-      margin: 0px;
-      margin-left: 10px;
-      width: 60px;
-    }
-    #blurred {
-      opacity: 0.5;
-    }
-    .controls,
-    .p_options {
-      position: absolute;
-      left: initial;
-      right: 10px;
-      bottom: 10px;
-      width: 200px !important;
-      transform: scale(0.8);
-      background-color: none;
-      z-index: 30;
-      background: none;
-    }
-    .controls {
-      right: 350px;
-      bottom: 30px;
-    }
-    .p_options {
-      right: 180px;
-      bottom: 30px !important;
-      border-left: 1px solid white;
-      border-radius: 0px;
-      padding-left: 15px;
-    }
-    .volumeRockerArea {
-      bottom: 5px;
-      right: 190px;
-      width: 350px;
-      background: none;
-      z-index: 20;
-      input {
-        display: block;
-        cursor: pointer;
-        filter: grayscale(1) invert(1);
-      }
-    }
-    .volumeRockerArea:hover {
-      width: 350px;
-    }
-  }
-}
 .playingPane {
-  position: relative;
-  height: 100vh;
-  z-index: 8;
-  display: flex;
-  flex-direction: column;
+  position: fixed;
+  left: 0;
+  bottom: 0;
+  height: 100px;
+  width: 100vw;
+  z-index: 20;
+  background: black;
+  display: grid;
+  gap: 10px;
+  grid-template-columns: 0.5fr 0.1fr 4fr 2fr;
   align-items: center;
-  max-width: 285px;
-  min-width: 100px;
-  #visualizerArea {
-    position: absolute;
-    width: 100%;
-    height: 25%;
-    bottom: 15%;
-  }
+  justify-content: center;
+  overflow: hidden;
   #cover {
-    position: relative;
-    z-index: 3;
-    width: 85%;
-    max-width: 240px;
-    margin-top: 45px;
-    box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.205);
+    max-width: 150px;
+    max-height: 90px;
+    margin: auto;
+    margin-left: 10px;
+    align-self: center;
+  }
+  .trackInfo {
+    display: flex;
+    justify-content: space-between;
+    #artistName {
+      font-family: roboto-thin;
+    }
+    #artistName:hover {
+      text-decoration: underline;
+      cursor: pointer;
+    }
   }
   .possibleCovers {
     width: 100%;
@@ -515,52 +381,27 @@ export default {
   }
   #blurred {
     position: absolute;
-    top: 0;
+    top: -20px;
     left: 0;
     width: 100%;
-    height: 100%;
+    height: 120%;
     filter: blur(20px);
     opacity: 0.7;
+    z-index: -1;
   }
-  .songInfo {
-    position: relative;
-    z-index: 5;
-    color: white;
-    width: 100%;
-    padding: 25px;
-    p {
-      margin-bottom: 15px;
-      font-family: roboto-light;
-    }
-    #songName {
-      font-family: roboto;
-      width: 100%;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-      overflow: hidden;
-    }
-    #artistName {
-      font-size: 0.9em;
-    }
-    #albumName {
-      font-size: 0.9em;
-    }
-    .bordered {
-      border: 2px solid white;
-      border-radius: 15px;
-      border-bottom-right-radius: 0px;
-      padding: 5px;
-    }
+  .bordered {
+    border: 2px solid white;
+    border-radius: 15px;
+    border-bottom-right-radius: 0px;
+    padding: 5px;
   }
-  .controls,
-  .p_options {
-    position: absolute;
-    left: 50%;
-    bottom: 10px;
-    width: 80%;
-    transform: translateX(-50%);
-    background-color: rgba(255, 255, 255, 0.062);
-    border-radius: 40px;
+}
+.controls {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  .control {
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -582,114 +423,32 @@ export default {
       }
     }
   }
-}
-.p_options {
-  width: 80% !important;
-  bottom: 70px !important;
-  padding-right: 0px;
-  padding-left: 0px;
-}
-.volumeRockerArea {
-  position: absolute;
-  bottom: 130px;
-  width: 10%;
-  z-index: 3;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background-color: rgba(100, 100, 100, 0.274);
-  border-radius: 10px;
-  padding: 5px;
-  input {
-    display: none;
-    width: 85%;
-    height: 2px;
+  .play_controls {
+    border-right: 1px solid white;
   }
-}
-.volumeRockerArea:hover {
-  width: 80%;
-  input {
-    display: block;
-    cursor: pointer;
-  }
-}
-.trackTags {
-  background-color: rgba(100, 100, 100, 0.062);
-  position: absolute;
-  top: 0;
-  width: 100%;
-  z-index: 10;
-  color: white;
-  display: none;
-  transition: 0.2s ease;
-  #selectCoverArt {
-    position: relative;
-    z-index: 5;
-    text-align: center;
-    transform: translateY(50%) translateX(-50%);
-    width: 50%;
-    left: 50%;
-    padding: 5px;
+  .volumeRockerArea {
+    position: absolute;
+    left: 9%;
+    bottom: 0;
+    width: 200px;
+    transform: translate(0, 95%);
+    z-index: 3;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     border-radius: 10px;
-    background: rgba(12, 12, 12, 0.863);
-    cursor: pointer;
-    transition: 0.2s ease;
-  }
-  #selectCoverArt:hover {
-    border-radius: 20px;
-    background: #0062ff;
-  }
-  #coverArtTag {
-    width: 230px;
-    margin-top: 10px;
-    margin-bottom: -30px;
-    margin-left: 20px;
-  }
-  div {
-    padding: 10px;
-    border-bottom: 1px solid gray;
-    p {
-      font-family: roboto-light;
+    input {
+      width: 53%;
+      height: 2px;
+      opacity: 0;
+      cursor: pointer;
+      filter: grayscale(0.9);
     }
   }
-}
-.editModeBtns {
-  position: absolute;
-  z-index: 4;
-  left: 0%;
-  bottom: 0px;
-  width: 100%;
-  height: 140px;
-  padding: 10px;
-  display: none;
-  flex-direction: column;
-  justify-content: space-around;
-  align-items: center;
-  overflow: hidden;
-  transition: 0.2s ease;
-  color: white;
-  background-color: rgba(100, 100, 100, 0.062);
-  p {
-    padding: 5px;
-    padding-top: 8px;
-    padding-bottom: 8px;
-    width: 100%;
-    text-align: center;
-    border-radius: 20px;
-    font-size: 1.2em;
-    font-family: roboto;
-    transition: 0.2s ease;
-    cursor: pointer;
-  }
-  p:hover {
-    border-radius: 12px;
-  }
-  #saveChanges {
-    background: rgb(255, 255, 255);
-    color: black;
-  }
-  #exitEditMode {
-    background: rgb(209, 1, 46);
+  .volumeRockerArea:hover {
+    input {
+      opacity: 1;
+    }
   }
 }
 .noMusicPlaying {
@@ -713,7 +472,7 @@ export default {
   .editModeBtns {
     display: none;
   }
-  .p_options {
+  .control extra_controls {
     display: none !important;
   }
   #CoverSearcher {

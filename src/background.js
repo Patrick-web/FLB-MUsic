@@ -21,7 +21,7 @@ const { DownloaderHelper } = require("node-downloader-helper");
 const ffbinaries = require("ffbinaries");
 const ffmpegPath = PATH.join(APPDATAFOLDER, "ffmpeg");
 const ffprobePath = PATH.join(APPDATAFOLDER, "ffprobe");
-
+const ADDEDTRACKSJSON = PATH.join(APPDATAFOLDER, "addTracks.json");
 ffmpeg.setFfmpegPath(ffmpegPath);
 ffmpeg.setFfprobePath(ffprobePath);
 
@@ -76,6 +76,9 @@ async function createWindow() {
   });
   win.maximize();
 
+  win.on("close", (event) => {
+    sendMsgToFrontend("saveDataToLocalStorage", null);
+  });
   if (process.env.WEBPACK_DEV_SERVER_URL) {
     // Load the url of the dev server if in development mode
     await win.loadURL(process.env.WEBPACK_DEV_SERVER_URL);
@@ -86,8 +89,10 @@ async function createWindow() {
     win.loadURL("app://./index.html");
   }
 }
+
 // Quit when all windows are closed.
 app.on("window-all-closed", () => {
+  sendMsgToFrontend("saveDataToLocalStorage", null);
   // On macOS it is common for application s and their menu bar
   // to stay active until the user  quits explicitly with Cmd + Q
   if (process.platform !== "darwin") {
@@ -319,23 +324,8 @@ ipcMain.on("addMusicFromFolder", async () => {
     properties: ["openDirectory"],
   });
 
-  if (!files) return;
-  for (let fileOrFolder of (await files).filePaths) {
-    FS.readdir(fileOrFolder, (err, files) => {
-      if (err) return;
-      files.forEach(async (fileName) => {
-        if (
-          fileName.includes(".mp3") ||
-          fileName.includes(".m4a") ||
-          fileName.includes(".ogg") ||
-          fileName.includes(".wav")
-        ) {
-          const pathToFile = PATH.join(fileOrFolder, fileName);
-          parseAudioFile(pathToFile, "audioWithCover", false);
-        }
-      });
-    });
-  }
+  const folder = (await files).filePaths[0];
+  if (folder) loadFromAFolder(folder);
 });
 
 ipcMain.on("processDroppedFiles", (e, filePaths) => {
@@ -359,16 +349,15 @@ ipcMain.on("downloadBinaries", () => getBinaries());
 
 function loadFromAFolder(folderPath) {
   FS.readdir(folderPath, (err, files) => {
-    files.forEach(async (fileName) => {
-      if (
-        fileName.includes(".mp3") ||
-        fileName.includes(".m4a") ||
-        fileName.includes(".ogg") ||
-        fileName.includes(".wav")
-      ) {
-        const pathToFile = PATH.join(folderPath, fileName);
-        parseAudioFile(pathToFile, "audioWithCover", false);
-      }
+    const audioFiles = files.filter(
+      (file) =>
+        file.includes("mp3") ||
+        file.includes("m4a" || file.includes("ogg") || file.includes("wav"))
+    );
+    console.log(audioFiles.length * 100 + " is required");
+    audioFiles.forEach(async (fileName) => {
+      const pathToFile = PATH.join(folderPath, fileName);
+      parseAudioFile(pathToFile, "audioWithCover", false);
     });
   });
   setTimeout(() => {
@@ -394,7 +383,7 @@ async function parseAudioFile(
   response,
   parsingForPlaylistOrRecents
 ) {
-  console.log("Parsing" + pathToFile);
+  // console.log("Parsing" + pathToFile);
   return new Promise((resolve) => {
     let dataToSendBack;
     const fileName = pathToFile.replace(/(.*)[\/\\]/, "");
@@ -427,26 +416,33 @@ async function parseAudioFile(
               console.log(error);
             }
           }
-          const audioWithCover = {
-            title: fileName
+          FS.stat(pathToFile, (err, stats) => {
+            const dateObj = new Date(stats.atime);
+            tags["dateAdded"] = `${dateObj.getDay() + 1}/${dateObj.getMonth() +
+              1}/${dateObj.getFullYear()}`;
+            const fileNameWithoutMIME = fileName
               .replace(".m4a", "")
               .replace(".mp3", "")
               .replace(".ogg", "")
-              .replace(".wav", ""),
-            artist: tags.artist || "unknown",
-            album: tags.album || "unknown",
-            path: "file://" + pathToFile,
-            cover,
-            duration: aditionalInfo.duration,
-            formatedLength: aditionalInfo.formatedLength,
-          };
-          if (parsingForPlaylistOrRecents) {
-            dataToSendBack = audioWithCover;
-            resolve(dataToSendBack);
-          } else {
-            resolve();
-            win.webContents.send(response, audioWithCover);
-          }
+              .replace(".wav", "");
+            const audioWithCover = {
+              title: tags.title || fileNameWithoutMIME,
+              artist: tags.artist || "unknown",
+              album: tags.album || "unknown",
+              path: "file://" + pathToFile,
+              cover,
+              duration: aditionalInfo.duration,
+              formatedLength: aditionalInfo.formatedLength,
+              dateAdded: tags.dateAdded || "unknown",
+            };
+            if (parsingForPlaylistOrRecents) {
+              dataToSendBack = audioWithCover;
+              resolve(dataToSendBack);
+            } else {
+              resolve();
+              win.webContents.send(response, audioWithCover);
+            }
+          });
         })
         .catch((err) => {
           console.log("error at mm parser");
@@ -482,6 +478,19 @@ ipcMain.on("parsePlaylist", async (e, playlists) => {
   });
 });
 
+ipcMain.on("verifyExistence", (e, tracks) => {
+  console.log("Checking for deleted tracks....");
+  const toBePurged = [];
+  tracks.forEach((track) => {
+    setTimeout(() => {
+      if (!FS.existsSync(track.path.replace("file://", ""))) {
+        toBePurged.push(track.path);
+        console.log(track.path + "no longer exists");
+      }
+    }, 5000);
+  });
+  win.webContents.send("purgeFromCache", toBePurged);
+});
 ipcMain.on("parseRecentlyPlayed", (e, recentsLocations) => {
   recentsLocations.forEach((recentTrack) => {
     parseAudioFile(recentTrack, "addToRecents", false);
@@ -495,6 +504,17 @@ ipcMain.on("convertFile", (e, data) => {
 });
 ipcMain.on("mergeFiles", (e, data) => {
   mergeFiles(data[0], data[1]);
+});
+ipcMain.on("downloadTrack", (e, data) => {
+  console.log("Data received");
+  var buf = Buffer.from(data, "base64");
+  FS.writeFile("/home/x/Music/flbing2.mp3", data, "binary", function(err) {
+    if (err) {
+      console.log(err);
+    } else {
+      console.log("The file was saved!");
+    }
+  });
 });
 
 function secondsToTime(sec) {
