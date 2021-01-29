@@ -154,10 +154,9 @@ export default {
     display: flex;
     align-items: center;
     justify-content: center;
-    background: black;
-    border: 2px solid white;
-    padding: 8px;
-    border-radius: 20px;
+    border: 1px solid rgba(255, 255, 255, 0);
+    padding: 5px;
+    border-radius: 15px;
     margin-top: 5px;
     margin-bottom: 5px;
     margin-right: 10px;
@@ -169,13 +168,16 @@ export default {
   .artist:hover {
     text-decoration: underline;
   }
+  .duration {
+    transform: translateY(-50%);
+    margin-right: 10px;
+  }
 }
 .track:hover {
   cursor: default !important;
   .trackBt:hover {
     cursor: pointer;
-    filter: invert(1);
-    border: 2px solid black;
+    border: 1px solid rgb(255, 255, 255);
   }
 }
 </style>

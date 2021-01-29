@@ -70,16 +70,11 @@ export default {
     };
   },
   methods: {
-    ...mapMutations([
-      "addPlaylist",
-      "deletePlaylist",
-      "changePlaylistName",
-      "clearRecentsAndPlaylists",
-    ]),
+    ...mapMutations(["addPlaylist", "deletePlaylist", "changePlaylistName"]),
     loadPlaylistsFromDB() {
       const playlists = JSON.parse(localStorage.getItem("playlists"));
       if (playlists) {
-        electron.ipcRenderer.send("parsePlaylist", playlists);
+        playlists.forEach((playlist) => this.addplaylist(playlist));
       }
     },
     showPlaylistOptions(e) {
@@ -141,18 +136,12 @@ export default {
   },
   mounted() {
     setTimeout(() => {
-      // this.loadPlaylistsFromDB();
+      this.loadPlaylistsFromDB();
     }, 2000);
     electron.ipcRenderer.on("addPlaylist", (event, playlists) => {
       this.addPlaylist(playlists);
     });
     electron.ipcRenderer.on("removePlayingTrack", (event, track) => {
-      this.clearRecentsAndPlaylists();
-      setTimeout(() => {
-        this.loadPlaylistsFromDB(track);
-      }, 100);
-    });
-    electron.ipcRenderer.on("deleteComplete", (event, track) => {
       this.clearRecentsAndPlaylists();
       setTimeout(() => {
         this.loadPlaylistsFromDB(track);

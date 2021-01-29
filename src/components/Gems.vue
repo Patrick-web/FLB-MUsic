@@ -1,43 +1,64 @@
 <template>
   <div class="Gems">
-    <div class="gemTabber">
-      <p class="activeGemTab">FLBing</p>
-      <p>Converter</p>
+    <div v-if="!hideGemUIOptions" class="GemUIOptions">
+      <div class="modalActions">
+        <img
+          @click="UIcontrollerToggleProperty('showGems')"
+          src="@/assets/x.svg"
+          alt=""
+        />
+      </div>
+      <div class="gemTabber">
+        <p>
+          <img width="20px" src="@/assets/convert.svg" alt="" />
+        </p>
+        <p class="activeGemTab">
+          <img width="18px" src="@/assets/search.svg" alt="" />
+        </p>
+      </div>
+      <div v-if="currentGem == 'converter'" class="converter">
+        <h1>Video to Mp3</h1>
+        <p id="selectedVideo">
+          {{ videoToConvert }}
+        </p>
+        <button @click="importVideo">
+          <h2>Import Video</h2>
+        </button>
+        <button
+          v-if="videoToConvert != 'No Video Imported  📽'"
+          @click="startConversion"
+        >
+          <h2>Convert</h2>
+        </button>
+        <div class="outputs"></div>
+      </div>
+      <br />
     </div>
-    <div v-if="currentGem == 'converter'" class="converter">
-      <h1>Video to Mp3</h1>
-      <p id="selectedVideo">
-        {{ videoToConvert }}
-      </p>
-      <button @click="importVideo">
-        <h2>Import Video</h2>
-      </button>
-      <button
-        v-if="videoToConvert != 'No Video Imported  📽'"
-        @click="startConversion"
-      >
-        <h2>Convert</h2>
-      </button>
-      <div class="outputs"></div>
-    </div>
-    <FLBing />
+    <FLBing v-on:goFullflbing="goFullFLBing" />
   </div>
 </template>
 
 <script>
 const electron = window.require("electron");
 import FLBing from "@/components/FLBing/FLBing.vue";
+import { mapMutations } from "vuex";
 export default {
   data() {
     return {
       currentGem: "FLBBing",
       videoToConvert: "No Video Imported  📽",
+      hideGemUIOptions: false,
     };
   },
   components: {
     FLBing,
   },
   methods: {
+    ...mapMutations(["UIcontrollerToggleProperty"]),
+    goFullFLBing(res) {
+      console.log(res + "---------");
+      this.hideGemUIOptions = res;
+    },
     importVideo() {
       electron.ipcRenderer.send("importVideoForConversion");
     },
@@ -90,26 +111,43 @@ export default {
 
 <style lang="scss">
 .Gems {
-  position: absolute;
+  position: fixed;
   top: 0%;
   height: 100vh;
   left: 0%;
   z-index: 50;
-  background: #171717;
-  box-shadow: 0px 0px 50px black;
+  background-color: rgba(0, 0, 0, 0.39);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.315);
   width: 100%;
+  .modalActions {
+    position: absolute;
+    right: 0;
+    top: 0;
+    padding: 10px;
+    display: flex;
+    align-items: center;
+    img {
+      width: 15px;
+      cursor: pointer;
+    }
+  }
   .gemTabber {
+    position: absolute;
     display: grid;
     grid-template-columns: 1fr 1fr;
     background: black;
     margin: auto;
-    border-radius: 20px;
+    border-radius: 10px;
     position: sticky;
-    width: 150px;
+    width: 70px;
+    margin-top: 10px;
     overflow: hidden;
-    transform: translateY(50%);
     p {
-      padding: 8px;
+      padding: 5px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       cursor: pointer;
     }
     .activeGemTab {

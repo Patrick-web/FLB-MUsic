@@ -87,7 +87,7 @@ export default {
       let length;
       length = e.clientX - track.getBoundingClientRect().x;
       const percentageSeek = Math.ceil(
-        (length / window.getComputedStyle(track).width.substring(0, 3)) * 100
+        (length / window.getComputedStyle(track).width.replace("px", "")) * 100
       );
       seekProgress.style.width = `${percentageSeek}%`;
       const audio = document.querySelector("#audioTag");
@@ -120,28 +120,31 @@ export default {
     const progressInfoCard = document.querySelector(".progressInfoCard");
     const audio = document.querySelector("audio");
     console.log(audio.currentTime);
-    setInterval(() => {
-      if (audio.currentTime) {
-        this.currentTime = this.timeFormatter(audio.currentTime);
-        this.duration = this.timeFormatter(audio.duration);
-      }
+    document.querySelector("audio").addEventListener("timeupdate", (e) => {
+      this.currentTime = this.timeFormatter(audio.currentTime);
+      this.duration = this.timeFormatter(audio.duration);
       const percent = Math.floor((audio.currentTime / audio.duration) * 100);
       seekProgress.style.width = `${percent}%`;
       if (audio.currentTime == audio.duration) {
         this.determineNextTrack();
       }
-    }, 1000);
+    });
     progressBar.addEventListener("mousemove", (e) => {
       const posX = e.clientX - progressBar.getBoundingClientRect().x;
       const percentageSeek = Math.ceil(
-        (posX / window.getComputedStyle(progressBar).width.substring(0, 3)) *
+        (posX / window.getComputedStyle(progressBar).width.replace("px", "")) *
           100
       );
       this.hoverTime = this.timeFormatter(
         (percentageSeek * audio.duration) / 100
       );
       document.querySelector("#hoverTime").style.left = `${percentageSeek -
-        3}%`;
+        2}%`;
+    });
+    //handle being pause by os
+    audio.addEventListener("pause", () => {
+      const playIcon = document.querySelector("#playIcon");
+      if (playIcon) playIcon.click();
     });
   },
 };
@@ -160,7 +163,7 @@ export default {
 }
 
 .seekBar {
-  background: #00000069;
+  background: #ffffff69;
   width: 100%;
   height: 10px;
   position: relative;

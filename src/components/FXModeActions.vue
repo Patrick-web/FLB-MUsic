@@ -1,117 +1,114 @@
 <template>
   <div v-if="bulkSelected.length > 0" class="FxModeActions">
-    <transition enter-active-class="animated extrafaster slideInDown">
-      <div v-if="!selectedAction" class="actionsSelect">
-        <h1>Select Action</h1>
-        <div @click="switchToAction('Delete Selected Files?')" class="action">
-          <img src="@/assets/trash-bin-outline.svg" alt="" />
-          <p>Delete from Computer</p>
-        </div>
-        <div @click="switchToAction('Tag Changer')" class="action">
-          <img
-            style="width:15px;margin-right:13px"
-            src="@/assets/pen.svg"
-            alt=""
-          />
-          <p>Change Tags</p>
-        </div>
-        <div @click="switchToAction('Merge Selected Audio?')" class="action">
-          <img src="@/assets/merge.svg" alt="" />
-          <p>Merge to One</p>
-        </div>
-        <div @click="switchToAction('Select Output File Type')" class="action">
-          <img style="width:22px" src="@/assets/convert.svg" alt="" />
-          <p>Convert</p>
-        </div>
-        <div @click="switchToAction('Select Playlist')" class="action">
-          <img src="@/assets/playlist_add.svg" alt="" />
-          <p>Add To Playlist</p>
-        </div>
-        <div @click="addBulkToQueue" class="action">
-          <img src="@/assets/queue_music.svg" alt="" />
-          <p>Add To Queue</p>
-        </div>
+    <div v-if="!selectedAction" class="actionsSelect">
+      <h1>Select Action</h1>
+      <div @click="switchToAction('Delete Selected Files?')" class="action">
+        <img src="@/assets/trash-bin-outline.svg" alt="" />
+        <p>Delete from Computer</p>
       </div>
-    </transition>
-    <transition enter-active-class="animated extrafaster slideInUp">
-      <div v-if="selectedAction" class="actionContainer">
+      <div @click="switchToAction('Tag Changer')" class="action">
         <img
-          @click="selectedAction = ''"
-          id="actionBackBt"
-          src="@/assets/back.svg"
+          style="width:15px;margin-right:13px"
+          src="@/assets/pen.svg"
           alt=""
         />
-        <h3>{{ selectedAction }}</h3>
-        <br />
-        <div
-          v-if="selectedAction == 'Select Output File Type'"
-          class="fx_converter"
-        >
-          <div class="types">
-            <div
-              v-for="type in fileTypes"
-              :key="type"
-              @click="selectFileType($event, type)"
-              class="fileType"
-            >
-              {{ type }}
-            </div>
-          </div>
-          <button @click="bulkConvert"><h3>Convert</h3></button>
-        </div>
-        <div
-          v-if="selectedAction == 'Select Playlist'"
-          class="fx_playlistAdder"
-        >
-          <p
-            @click="addToBulkPlaylist(playlist.name)"
-            v-for="playlist in playlists"
-            :key="playlist.name"
-            class="playlistName"
+        <p>Change Tags</p>
+      </div>
+      <div @click="switchToAction('Merge Selected Audio?')" class="action">
+        <img src="@/assets/merge.svg" alt="" />
+        <p>Merge to One</p>
+      </div>
+      <div @click="switchToAction('Select Output File Type')" class="action">
+        <img style="width:22px" src="@/assets/convert.svg" alt="" />
+        <p>Convert</p>
+      </div>
+      <div @click="switchToAction('Select Playlist')" class="action">
+        <img src="@/assets/playlist_add.svg" alt="" />
+        <p>Add To Playlist</p>
+      </div>
+      <div @click="addBulkToQueue" class="action">
+        <img src="@/assets/queue_music.svg" alt="" />
+        <p>Add To Queue</p>
+      </div>
+    </div>
+    <div v-if="selectedAction" class="actionContainer">
+      <img
+        @click="selectedAction = ''"
+        id="actionBackBt"
+        src="@/assets/back.svg"
+        alt=""
+      />
+      <h3>{{ selectedAction }}</h3>
+      <br />
+      <div
+        v-if="selectedAction == 'Select Output File Type'"
+        class="fx_converter"
+      >
+        <div class="types">
+          <div
+            v-for="type in fileTypes"
+            :key="type"
+            @click="selectFileType($event, type)"
+            class="fileType"
           >
-            {{ playlist.name }}
-          </p>
+            {{ type }}
+          </div>
         </div>
-
-        <div
-          v-if="selectedAction == 'Delete Selected Files?'"
-          class="fx_deleteConfirmation"
+        <button @click="bulkConvert"><h3>Convert</h3></button>
+      </div>
+      <div v-if="selectedAction == 'Select Playlist'" class="fx_playlistAdder">
+        <p
+          @click="addToBulkPlaylist(playlist.name)"
+          v-for="playlist in playlists"
+          :key="playlist.name"
+          class="playlistName"
         >
-          <div class="confirmationBts">
-            <button @click="bulkDelete"><h3>Yes</h3></button>
-            <button class="dangerBt"><h3>Cancel</h3></button>
-          </div>
-        </div>
+          {{ playlist.name }}
+        </p>
+      </div>
 
-        <div v-if="selectedAction == 'Tag Changer'" class="fx_tagWriter">
-          <div class="tags">
-            <div class="tag">
-              <p>Title and File name</p>
-              <input v-model="tagTitle" class="inputElem" type="text" />
-            </div>
-            <div class="tag">
-              <p>Album</p>
-              <input v-model="tagAlbum" class="inputElem" type="text" />
-            </div>
-            <div class="tag">
-              <p>Artist</p>
-              <input v-model="tagArtist" class="inputElem" type="text" />
-            </div>
-            <button @click="bulkTagWrite"><h3>Save Changes</h3></button>
-          </div>
-        </div>
-
-        <div v-if="selectedAction == 'Merge Selected Audio?'" class="fx_merger">
-          <div class="confirmationBts">
-            <p>Enter output file name</p>
-            <input class="inputElem" type="text" v-model="outputFileName" />
-            <button @click="bulkMerge" v-if="outputFileName">
-              <h3>Merge</h3>
-            </button>
-          </div>
+      <div
+        v-if="selectedAction == 'Delete Selected Files?'"
+        class="fx_deleteConfirmation"
+      >
+        <div class="confirmationBts">
+          <button @click="bulkDelete"><h3>Yes</h3></button>
+          <button class="dangerBt"><h3>Cancel</h3></button>
         </div>
       </div>
-    </transition>
+
+      <div v-if="selectedAction == 'Tag Changer'" class="fx_tagWriter">
+        <div class="tags">
+          <div class="tag">
+            <div class="centerContents">
+              <img id="coverArtTag" width="100px" alt="" />
+            </div>
+            <button @click="importCover" id="selectCoverArt">
+              <p>Import Common Album Art</p>
+            </button>
+          </div>
+          <div class="tag">
+            <p>Album</p>
+            <input v-model="tagAlbum" class="inputElem" type="text" />
+          </div>
+          <div class="tag">
+            <p>Artist</p>
+            <input v-model="tagArtist" class="inputElem" type="text" />
+          </div>
+          <button @click="bulkTagWrite"><h3>Save Changes</h3></button>
+        </div>
+      </div>
+
+      <div v-if="selectedAction == 'Merge Selected Audio?'" class="fx_merger">
+        <div class="confirmationBts">
+          <p>Enter output file name</p>
+          <input class="inputElem" type="text" v-model="outputFileName" />
+          <button @click="bulkMerge" v-if="outputFileName">
+            <h3>Merge</h3>
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -127,7 +124,7 @@ export default {
       selectedAction: null,
       selectedTracks: null,
       outputFileName: null,
-      tagTitle: null,
+      tagCover: null,
       tagArtist: null,
       tagAlbum: null,
       fileTypes: ["mp3", "wav", "ogg", "m4a"],
@@ -185,11 +182,6 @@ export default {
       this.selectedAction = "";
     },
     bulkDelete() {
-      this.bulkSelected.forEach((track) => {
-        setTimeout(() => {
-          electron.ipcRenderer.send("deleteFile", track.path);
-        }, 1500);
-      });
       this.selectedAction = "";
       this.selectedTracks = Array.from(
         document.querySelectorAll(".bulkSelected")
@@ -197,11 +189,16 @@ export default {
       this.selectedTracks.forEach((trackIndex) => {
         this.removeFromAddedTracks(trackIndex);
       });
+      this.bulkSelected.forEach((track) => {
+        setTimeout(() => {
+          electron.ipcRenderer.send("deleteFile", track.path);
+        }, 1500);
+      });
     },
     bulkTagWrite() {
       let tags = {};
-      if (this.tagTitle) {
-        tags["title"] = this.tagTitle;
+      if (this.tagCover) {
+        tags["APIC"] = this.tagCover;
       }
       if (this.tagArtist) {
         tags["artist"] = this.tagArtist;
@@ -215,12 +212,16 @@ export default {
             path: track.path.replace("file://", ""),
             tags: tags,
           };
+          console.log(tags);
           if (Object.keys(data.tags).length !== 0) {
-            electron.ipcRenderer.send("updateTrackInfo", data);
+            electron.ipcRenderer.send("updateTags", data);
           }
         }, 1000); //tag write takes time
       });
       this.selectedAction = "";
+    },
+    importCover() {
+      electron.ipcRenderer.send("importCoverArt");
     },
     bulkMerge() {
       electron.ipcRenderer.send("mergeFiles", [
@@ -230,7 +231,15 @@ export default {
       this.selectedAction = "";
     },
   },
-  mounted() {},
+  mounted() {
+    electron.ipcRenderer.on("importedCoverArt", (e, data) => {
+      document.querySelector("#coverArtTag").src = data;
+      this.tagCover = data;
+    });
+    if (navigator.onLine) {
+      electron.ipcRenderer.send("downloadBinaries");
+    }
+  },
 };
 </script>
 
@@ -245,8 +254,8 @@ export default {
   background-color: rgba(0, 0, 0, 0.39);
   backdrop-filter: blur(10px);
   box-shadow: 0px 0px 50px black;
-  border-radius: 20px;
   border: 1px solid rgba(255, 255, 255, 0.315);
+  border-radius: 20px;
   overflow: hidden;
   h1,
   h3 {
@@ -292,9 +301,9 @@ export default {
     }
   }
   .action:hover {
+    background-color: #ffffff1e;
     border-radius: 20px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0);
-    background: rgba(56, 86, 255, 0.356);
+    margin: 5px;
   }
   .fx_tagWriter {
     .tags {

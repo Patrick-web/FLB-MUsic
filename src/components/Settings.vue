@@ -1,59 +1,23 @@
 <template>
-  <div class="Settings Modal">
+  <div class="Settings">
     <h1 id="SettingsTitle">Settings</h1>
-    <p class="modalClose" @click="hideSettings">X</p>
+    <p class="modalClose" @click="UIcontrollerToggleProperty('showSettings')">
+      <img src="@/assets/x.svg" alt="" />
+    </p>
     <div class="settings">
       <div @click="toggleTableLayout" id="tableLayoutToggle" class="setting">
         <p>Table Layout</p>
-        <vs-switch disabled="true" v-model="tableLayout">
-          <template #off>
-            Off
-          </template>
-          <template #on>
-            On
-          </template>
-        </vs-switch>
+        <button class="iconBt">
+          <h4 v-if="!settings.tableLayout">Off</h4>
+          <h4 v-if="settings.tableLayout">On</h4>
+        </button>
       </div>
-      <div
-        @click="toggleFakeLightMode"
-        id="fakeLightModeToggle"
-        class="setting"
-      >
-        <p>Fake Light Mode (Experimental)</p>
-        <vs-switch disabled="true" v-model="fakeLightMode">
-          <template #off>
-            Off
-          </template>
-          <template #on>
-            On
-          </template>
-        </vs-switch>
-      </div>
-      <div @click="toggleVisualizer" id="visualizerToggle" class="setting">
-        <p>Visualizer</p>
-        <vs-switch disabled="true" v-model="visualizer">
-          <template #off>
-            Off
-          </template>
-          <template #on>
-            On
-          </template>
-        </vs-switch>
-      </div>
-      <div
-        @click="toggleDeezerDarkMode"
-        id="deezerDarkModeToggle"
-        class="setting"
-      >
-        <p>Force Deezer Dark Mode</p>
-        <vs-switch disabled="true" v-model="forceDeezerDarkMode">
-          <template #off>
-            Off
-          </template>
-          <template #on>
-            On
-          </template>
-        </vs-switch>
+      <div @click.stop="toggleVisuals" id="visualsToggle" class="setting">
+        <p>Visuals</p>
+        <button class="iconBt">
+          <h4 v-if="!settings.visuals">Off</h4>
+          <h4 v-if="settings.visuals">On</h4>
+        </button>
       </div>
     </div>
     <div class="shortcuts">
@@ -79,60 +43,38 @@
         <pre>Ctrl + R</pre>
       </div>
       <button @click="clearAddedTracks" class="dangerBt">
-        <h4>Clear Cached Tracks</h4>
+        <h2>Reset</h2>
       </button>
     </div>
   </div>
 </template>
 
 <script>
-import { mapMutations } from "vuex";
+import { mapGetters, mapMutations } from "vuex";
 import Wave from "wave-visualizer";
 export default {
   data() {
     return {
-      tableLayout: false,
-      fakeLightMode: false,
-      visualizer: true,
-      forceDeezerDarkMode: false,
+      visualsOffDueToBlur: false,
     };
   },
+  computed: {
+    ...mapGetters(["settings"]),
+  },
   methods: {
-    ...mapMutations(["setSetting"]),
-    hideSettings() {
-      document.querySelector(".Settings").classList.remove("ModalShow");
-    },
-    toggleFakeLightMode() {
-      this.fakeLightMode = !this.fakeLightMode;
-      document.querySelector("html").classList.toggle("fakeLightMode");
-      localStorage.setItem("fakeLightMode", this.fakeLightMode);
-      this.setSetting(["fakeLightMode", this.fakeLightMode]);
-    },
+    ...mapMutations(["toggleSetting", "UIcontrollerToggleProperty"]),
     toggleTableLayout() {
-      this.tableLayout = !this.tableLayout;
+      this.toggleSetting("tableLayout");
       document.querySelector(".MainGrid").classList.toggle("tableLayout");
-      localStorage.setItem("tableLayout", this.tableLayout);
-      this.setSetting(["tableLayout", this.tableLayout]);
+      localStorage.setItem("tableLayout", this.settings.tableLayout);
     },
-    toggleVisualizer() {
-      this.visualizer = !this.visualizer;
-      localStorage.setItem("visualizer", this.visualizer);
-      this.setSetting(["visualizer", this.visualizer]);
-      if (this.visualizer) {
-        const wave = new Wave();
-        wave.fromElement("audioTag", "visualizerArea", {
-          colors: ["white"],
-        });
-      }
-    },
-    toggleDeezerDarkMode() {
-      this.forceDeezerDarkMode = !this.forceDeezerDarkMode;
-      localStorage.setItem("forceDeezerDarkMode", this.forceDeezerDarkMode);
-      const noti = this.$vs.notify({
-        position: "top-center",
-        title: "Reload Deezer to apply this change",
+    toggleVisuals() {
+      this.toggleSetting("visuals");
+      localStorage.setItem("visuals", this.settings.visuals);
+      const wave = new Wave();
+      wave.fromElement("audioTag", "visualizerArea", {
+        colors: ["white"],
       });
-      this.setSetting(["forceDeezerDarkMode", this.forceDeezerDarkMode]);
     },
     clearAddedTracks() {
       localStorage.removeItem("addedTracks");
@@ -144,43 +86,24 @@ export default {
       });
     },
   },
-  mounted() {
-    if (JSON.parse(localStorage.getItem("tableLayout")) == true) {
-      document.querySelector("#tableLayoutToggle").click();
-    }
-    if (JSON.parse(localStorage.getItem("fakeLightMode")) == true) {
-      document.querySelector("#fakeLightModeToggle").click();
-    }
-    if (JSON.parse(localStorage.getItem("forceDeezerDarkMode")) == true) {
-      document.querySelector("#deezerDarkModeToggle").click();
-    }
-    if (JSON.parse(localStorage.getItem("visualizer")) == true) {
-      (this.visualizer = true), this.setSetting(["visualizer", true]);
-    } else {
-      (this.visualizer = false), this.setSetting(["visualizer", false]);
-    }
-    if (JSON.parse(localStorage.getItem("perfomanceMode")) == true) {
-      (this.perfomanceMode = true), this.setSetting(["perfomanceMode", true]);
-      (this.visualizer = false), this.setSetting(["visualizer", false]);
-    } else {
-      (this.perfomanceMode = false), this.setSetting(["perfomanceMode", false]);
-    }
-  },
+  mounted() {},
 };
 </script>
 
 <style lang="scss">
 .Settings {
+  position: fixed;
   background-color: rgba(0, 0, 0, 0.39);
   backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.315);
   box-shadow: 0px 0px 50px black;
   padding: 10px;
-  border-radius: 20px;
   overflow: hidden;
-  top: 5% !important;
+  top: 8%;
+  left: 30%;
   max-height: 800px;
   z-index: 50;
-  border: 1px solid rgba(255, 255, 255, 0.315);
+  width: 300px;
   h1 {
     text-align: center;
   }
@@ -193,15 +116,20 @@ export default {
     justify-content: space-between;
     align-items: center;
     border-radius: 20px;
-    padding: 10px;
+    padding: 5px;
+    padding-left: 10px;
     border-bottom: 1px solid rgba(255, 255, 255, 0.192);
     border-radius: 0px;
     cursor: pointer;
+    p {
+      font-family: roboto-light;
+      margin-right: 5px;
+    }
   }
   .setting:hover {
+    background-color: #ffffff1e;
     border-radius: 20px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0);
-    background: rgba(56, 86, 255, 0.356);
+    margin: 5px;
   }
   .shortcut {
     display: flex;
@@ -210,6 +138,7 @@ export default {
     padding: 10px;
     border-bottom: 1px solid rgba(255, 255, 255, 0.192);
     padding-bottom: 5px;
+    font-family: roboto-light;
     pre {
       background: rgb(0, 0, 0);
       padding: 5px;

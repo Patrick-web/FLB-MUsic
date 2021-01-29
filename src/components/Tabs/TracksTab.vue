@@ -1,25 +1,18 @@
 <template>
   <div class="tab addedTracksTab">
+    <div v-if="addedTracks.length == 0" class="loadingArea">
+      <div class="loadingIndicator"></div>
+    </div>
     <div v-if="addedTracks.length > 1" class="trackActions">
-      <div class="fxModeToggle" @click="toggleFxMode()">
+      <div class="fxModeToggle actionBt" @click="toggleFxMode()">
         <p id="enterFxMode">FX Mode</p>
         <p id="exitFxMode">Exit FX Mode</p>
         <img style="max-width:18px" src="@/assets/star_border.svg" alt="" />
       </div>
       <SortWidget />
     </div>
-    <div v-if="addedTracks.length === 0" class="noMusic">
-      <img src="@/assets/addIllustration.svg" alt="" />
-      <h3>Click on the Plus Icon to add tracks or drop them here</h3>
-      <button
-        @click="loadMusicFolder"
-        id="loadMusicFolderBt"
-        style="width:180px"
-      >
-        Just load my Music Folder
-      </button>
-    </div>
-    <transition-group>
+    <!-- <Player /> -->
+    <transition-group leave-active-class="animated faster slideOutLeft">
       <TrackCard
         :track="track"
         :trackIndex="index"
@@ -35,10 +28,13 @@ import { mapActions, mapGetters, mapMutations } from "vuex";
 const electron = window.require("electron");
 import SortWidget from "@/components/SortWidget.vue";
 import TrackCard from "@/components/TrackCard.vue";
+// import Player from "@/components/VideoPlayer/Player.vue";
+
 export default {
   components: {
     SortWidget,
     TrackCard,
+    // Player,
   },
   computed: {
     ...mapGetters(["addedTracks", "currentTab"]),
@@ -51,14 +47,6 @@ export default {
       "clearBulkSelect",
     ]),
     ...mapActions(["saveDataToLocalStorage"]),
-    loadMusicFolder() {
-      electron.ipcRenderer.send("loadMusicFolder");
-      document.querySelector("#loadMusicFolderBt").style.display = "none";
-      const noti = this.$vs.notify({
-        position: "top-center",
-        title: "Loading your music folder...",
-      });
-    },
     toggleFxMode() {
       document.querySelector(".addedTracksTab").classList.toggle("fxMode");
       if (
@@ -74,19 +62,22 @@ export default {
   mounted() {
     if (localStorage.getItem("addedTracks")) {
       const addedTracks = JSON.parse(localStorage.getItem("addedTracks"));
-      setTimeout(() => {
-        addedTracks.forEach((track) => this.addTrack(track));
-      }, 1000);
-      // electron.ipcRenderer.send("verifyExistence", addedTracks);
+      addedTracks.forEach((track) => this.addTrack(track));
+      electron.ipcRenderer.send("verifyExistence", addedTracks);
+    } else {
+      electron.ipcRenderer.send("loadMusicFolder");
     }
-    electron.ipcRenderer.on("saveDataToLocalStorage", (event, tracks) => {
+    electron.ipcRenderer.on("saveDataToLocalStorage", (event) => {
+      console.log("saveDataToLocalStorage");
       this.saveDataToLocalStorage();
     });
     electron.ipcRenderer.on("purgeFromCache", (event, tracks) => {
       this.purge(tracks);
     });
+    electron.ipcRenderer.on("reparseFromCache", (event, tracks) => {
+      this.reparse(tracks);
+    });
     electron.ipcRenderer.on("audioWithCover", (event, track) => {
-      document.querySelector(".addedTracksTab").scrollTo(0, 0);
       document.querySelector("#addedTracks").click();
       this.addTrack(track);
     });
@@ -129,7 +120,6 @@ export default {
 .addedTracksTab {
   padding-top: 0px !important;
   position: relative;
-  padding-bottom: 100px;
   .showHiddenActions {
     background: #0062ff !important;
     border-radius: 12px !important;
@@ -162,74 +152,17 @@ export default {
     #exitFxMode {
       display: none;
     }
-    div {
-      background: #1414144b;
+    .actionBt {
+      background-color: rgba(0, 0, 0, 0.295);
       display: flex;
       justify-content: space-between;
       align-items: center;
       padding: 10px;
       border-radius: 40px;
       cursor: pointer;
-      position: relative;
-      .sortMode {
-        position: absolute;
-        bottom: -220px;
-        left: -5px;
-        background-color: #000000c9;
-        backdrop-filter: blur(10px);
-        padding: 8px;
-        border-radius: 40px;
-        border: 2px solid #0062ff00;
-        p {
-          display: none;
-        }
-        #desc {
-          display: none;
-        }
-        #asc {
-          display: block;
-        }
-      }
-      .byDesc {
-        #desc {
-          display: block !important;
-        }
-        #asc {
-          display: none !important;
-        }
-      }
-      .sortMode:hover {
-        border: 2px solid #0062ff;
-      }
-      .sortParams {
-        bottom: -170px;
-        border-radius: 20px;
-        left: -10px;
-        position: absolute;
-        width: 100px;
-        background-color: #000000d0;
-        backdrop-filter: blur(10px);
-        overflow: hidden;
-        p {
-          padding: 10px;
-        }
-        p:hover {
-          background: #0062ff;
-        }
-        .selectedParam {
-          background: #0062ff;
-        }
-        .selectedParam:hover {
-          background: #0062ff;
-        }
-      }
-      img {
-        margin-left: 10px;
-        width: 20px;
-      }
     }
-    div:hover {
-      background: #0062ff;
+    .actionBt:hover {
+      background-color: rgba(252, 252, 252, 0.089);
     }
   }
 }

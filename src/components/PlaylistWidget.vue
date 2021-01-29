@@ -1,7 +1,12 @@
 <template>
-  <div class="Modal" id="PlaylistAdder">
-    <h2>Select Playlist</h2>
-    <p class="modalClose" @click="hideAdder">X</p>
+  <div id="PlaylistAdder">
+    <p
+      class="modalClose"
+      @click="UIcontrollerToggleProperty('showPlaylistWidget')"
+    >
+      <img src="@/assets/x.svg" alt="" />
+    </p>
+    <h2 style="text-align:center">Select Playlist</h2>
     <div class="newPlaylistForm">
       <input
         class="inputElem"
@@ -37,7 +42,11 @@ export default {
     ...mapGetters(["playlists"]),
   },
   methods: {
-    ...mapMutations(["createPlaylist", "addSelectedTrackToPlaylist"]),
+    ...mapMutations([
+      "createPlaylist",
+      "addSelectedTrackToPlaylist",
+      "UIcontrollerToggleProperty",
+    ]),
     createNewPlaylist() {
       this.createPlaylist(this.newPlaylistName);
       this.newPlaylistName = "";
@@ -59,6 +68,17 @@ export default {
 </script>
 
 <style lang="scss">
+#PlaylistAdder {
+  position: fixed;
+  right: 80px;
+  bottom: 120px;
+  z-index: 20;
+  background-color: rgba(0, 0, 0, 0.39);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.315);
+  box-shadow: 0px 0px 50px black;
+  padding: 10px;
+}
 .newPlaylistForm {
   margin-top: 5px;
   display: flex;
@@ -67,7 +87,7 @@ export default {
   position: relative;
 }
 .playlistName {
-  background: #111111;
+  background: #11111150;
   border-bottom: 0.5px solid rgba(255, 255, 255, 0.226);
   padding: 5px;
   font-size: 1.2em;

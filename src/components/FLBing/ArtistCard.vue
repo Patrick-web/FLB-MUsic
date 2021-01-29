@@ -72,14 +72,9 @@ export default {
 
 <style lang="scss">
 .artistCard {
-  border-radius: 30% !important;
   height: 200px;
   width: 200px;
   border: 0px solid rgb(255, 255, 255);
-  .cardInfo {
-    border-radius: 20px;
-    box-shadow: 0px 0px 8px black;
-  }
   .artistName {
     font-size: 0.9em;
     text-align: center;

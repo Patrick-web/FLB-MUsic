@@ -6,7 +6,8 @@ import {
   BrowserWindow,
   dialog,
   ipcMain,
-  globalShortcut,
+  Notification,
+  screen,
 } from "electron";
 import { createProtocol } from "vue-cli-plugin-electron-builder/lib";
 const mm = require("music-metadata");
@@ -19,12 +20,16 @@ const APPDATAFOLDER = app.getPath("userData");
 const ffmpeg = require("fluent-ffmpeg");
 const { DownloaderHelper } = require("node-downloader-helper");
 const ffbinaries = require("ffbinaries");
-const ffmpegPath = PATH.join(APPDATAFOLDER, "ffmpeg");
-const ffprobePath = PATH.join(APPDATAFOLDER, "ffprobe");
-const ADDEDTRACKSJSON = PATH.join(APPDATAFOLDER, "addTracks.json");
+let ffmpegPath = PATH.join(APPDATAFOLDER, "ffmpeg");
+let ffProbePath = PATH.join(APPDATAFOLDER, "ffprobe");
+if (ffbinaries.detectPlatform().includes("win")) {
+  ffmpegPath = ffmpegPath + ".exe";
+  ffProbePath = ffProbePath + ".exe";
+}
+console.log(ffmpegPath, ffProbePath);
+let appIsFocused = true;
 ffmpeg.setFfmpegPath(ffmpegPath);
-ffmpeg.setFfprobePath(ffprobePath);
-
+ffmpeg.setFfprobePath(ffProbePath);
 const CONVERTEDFILESDIR = PATH.join(MUSICFOLDER, "Converted");
 const MERGEDFILESDIR = PATH.join(MUSICFOLDER, "Merged");
 
@@ -38,6 +43,7 @@ if (!FS.existsSync(MERGEDFILESDIR)) {
 let FILESINARGS;
 
 const defaultThumbnail = PATH.join(__static, "Thumbnail.png");
+const LOGO = PATH.join(__static, "icon.png");
 
 if (process.argv[1]) {
   FILESINARGS = process.argv[1];
@@ -50,21 +56,19 @@ app.whenReady().then(() => {
 });
 
 const gotTheLock = app.requestSingleInstanceLock();
-if (!gotTheLock) {
-  app.quit();
-}
 
 protocol.registerSchemesAsPrivileged([
   { scheme: "app", privileges: { secure: true, standard: true } },
 ]);
 
 let win;
-
 async function createWindow() {
+  const primaryDisplay = screen.getPrimaryDisplay();
+  const { width, height } = primaryDisplay.workAreaSize;
   // Create the browser window.
   win = new BrowserWindow({
-    width: 800,
-    height: 600,
+    width,
+    height,
     webPreferences: {
       nodeIntegration: true,
       webSecurity: false,
@@ -74,10 +78,17 @@ async function createWindow() {
     title: "FLB Music",
     icon: PATH.join(__static, "icon.png"),
   });
-  win.maximize();
 
   win.on("close", (event) => {
     sendMsgToFrontend("saveDataToLocalStorage", null);
+  });
+  win.on("blur", () => {
+    appIsFocused = false;
+    sendMsgToFrontend("turnOffVisuals", "Window is not focused");
+  });
+  win.on("focus", () => {
+    appIsFocused = true;
+    sendMsgToFrontend("turnOnVisuals", "Window is focused again");
   });
   if (process.env.WEBPACK_DEV_SERVER_URL) {
     // Load the url of the dev server if in development mode
@@ -116,6 +127,7 @@ app.on("ready", async () => {
     e.preventDefault();
     require("electron").shell.openExternal(url);
   });
+  getBinaries();
 });
 
 // Exit cleanly on request from parent process in development mode.
@@ -169,42 +181,26 @@ async function getCoverArtUrl(coverArt) {
   if (stringForm.includes("file://"))
     return importedCoverArt.replace("file://", "");
 }
-
-ipcMain.on("updateTrackInfo", async (e, data) => {
+ipcMain.on("playingTrack", async (e, track) => {
+  if (!appIsFocused) {
+    sendNativeNotification(track.title, track.artist);
+  }
+});
+ipcMain.on("updateTags", async (e, data) => {
   if (data.tags.cover) {
     data.tags.APIC = data.tags.cover;
   }
   if (data.tags.APIC) {
     data.tags.APIC = await getCoverArtUrl(data.tags.APIC);
   }
-  let currentFilePath = data.path;
-  let success = NodeID3.update(data.tags, currentFilePath);
+  let success = NodeID3.update(data.tags, data.path);
   console.log("Tag write is " + success);
   if (success) {
-    sendMsgToFrontend("successMsg", "Tags successfuly changed");
-    win.webContents.send("removePlayingTrack");
-    if (data.tags.title) {
-      const folder = currentFilePath.match(/(.*)[\/\\]/)[1] || "";
-      const mimeType = `.${currentFilePath.split(".").pop()}`;
-      const newFileName = data.tags.title + mimeType;
-      let newFilePath = PATH.join(folder, newFileName);
-      console.log(newFilePath);
-      FS.rename(data.path, newFilePath, () => console.log("rename successful"));
-      setTimeout(() => {
-        parseAudioFile(newFilePath, "audioWithCover", false);
-        setTimeout(() => {
-          win.webContents.send("playFirstTrack");
-        }, 500);
-      }, 1000);
-      sendMsgToFrontend(`successMsg","File Renamed to ${newFileName}`);
-    } else {
-      setTimeout(() => {
-        parseAudioFile(currentFilePath, "audioWithCover", false);
-        setTimeout(() => {
-          win.webContents.send("playFirstTrack");
-        }, 500);
-      }, 1000);
-    }
+    sendMsgToFrontend("removePlayingTrack", null);
+    sendMsgToFrontend("saveDataToLocalStorage", "null");
+    setTimeout(() => {
+      parseAudioFile(data.path, "audioWithCover", false);
+    }, 1000);
   } else {
     sendMsgToFrontend("errorMsg", "Error occured in changing the tags");
   }
@@ -282,34 +278,14 @@ ipcMain.on("addMusicFromFile", async () => {
   });
 
   if (!files) return;
-  for (let fileOrFolder of (await files).filePaths) {
+  for (let pathToFile of (await files).filePaths) {
     if (
-      fileOrFolder.includes(".mp3") ||
-      fileOrFolder.includes(".m4a") ||
-      fileOrFolder.includes(".ogg") ||
-      fileOrFolder.includes(".wav")
+      pathToFile.includes(".mp3") ||
+      pathToFile.includes(".m4a") ||
+      pathToFile.includes(".ogg") ||
+      pathToFile.includes(".wav")
     ) {
-      console.log("Is a file");
-      console.log(fileOrFolder);
-      const pathToFile = fileOrFolder;
-      const fileName = pathToFile.replace(/(.*)[\/\\]/, "");
       parseAudioFile(pathToFile, "audioWithCover", false);
-    } else {
-      FS.readdir(fileOrFolder, (err, files) => {
-        if (err) return;
-        files.forEach(async (fileName) => {
-          if (
-            fileName.includes(".mp3") ||
-            fileName.includes(".m4a") ||
-            fileName.includes(".ogg") ||
-            fileName.includes(".wav")
-          ) {
-            const pathToFile = PATH.join(fileOrFolder, fileName);
-            parseAudioFile(pathToFile, "audioWithCover", false);
-          }
-        });
-      });
-      console.log("IS a folder");
     }
   }
 });
@@ -346,29 +322,50 @@ ipcMain.on("processDroppedFiles", (e, filePaths) => {
 
 ipcMain.on("loadMusicFolder", () => loadFromAFolder(MUSICFOLDER));
 ipcMain.on("downloadBinaries", () => getBinaries());
-
+let folderReadDepth = 1;
 function loadFromAFolder(folderPath) {
-  FS.readdir(folderPath, (err, files) => {
+  console.log("Reading dir " + folderPath);
+  FS.readdir(folderPath, async (err, files) => {
+    const subfolders = files.filter((file) =>
+      FS.lstatSync(PATH.join(folderPath, file)).isDirectory()
+    );
     const audioFiles = files.filter(
       (file) =>
         file.includes("mp3") ||
         file.includes("m4a" || file.includes("ogg") || file.includes("wav"))
     );
-    console.log(audioFiles.length * 100 + " is required");
-    audioFiles.forEach(async (fileName) => {
+    for await (const fileName of audioFiles) {
       const pathToFile = PATH.join(folderPath, fileName);
-      parseAudioFile(pathToFile, "audioWithCover", false);
-    });
+      await parseAudioFile(pathToFile, "audioWithCover", false);
+    }
+    if (folderReadDepth < 3) {
+      subfolders.forEach((subfolder) => {
+        loadFromAFolder(PATH.join(folderPath, subfolder));
+      });
+      folderReadDepth += 1;
+    } else {
+      folderReadDepth = 1;
+      sendMsgToFrontend("Folder Completely Loaded", folderPath);
+      console.log("Folder Completely Loaded");
+      return;
+    }
   });
-  setTimeout(() => {
-    win.webContents.send("playNow");
-  }, 1000);
+  sendMsgToFrontend("saveDataToLocalStorage", "null");
 }
 ipcMain.on("loadArguments", (e) => {
   if (FILESINARGS) {
     if (FS.lstatSync(FILESINARGS).isDirectory()) {
-      loadFromAFolder(FILESINARGS);
-      win.webContents.send("playNow");
+      FS.readdir(FILESINARGS, async (err, files) => {
+        const audioFiles = files.filter(
+          (file) =>
+            file.includes("mp3") ||
+            file.includes("m4a" || file.includes("ogg") || file.includes("wav"))
+        );
+        for await (const fileName of audioFiles) {
+          const pathToFile = PATH.join(folderPath, fileName);
+          await parseAudioFile(pathToFile, "audioWithCover", false);
+        }
+      });
     } else {
       parseAudioFile(FILESINARGS, "audioWithCover", false);
       setTimeout(() => {
@@ -426,8 +423,14 @@ async function parseAudioFile(
               .replace(".ogg", "")
               .replace(".wav", "");
             const audioWithCover = {
-              title: tags.title || fileNameWithoutMIME,
-              artist: tags.artist || "unknown",
+              title:
+                tags.title ||
+                fixTrackInfo(fileNameWithoutMIME).title ||
+                fileNameWithoutMIME,
+              artist:
+                tags.artist ||
+                fixTrackInfo(fileNameWithoutMIME).artist ||
+                "unknown",
               album: tags.album || "unknown",
               path: "file://" + pathToFile,
               cover,
@@ -540,15 +543,34 @@ function secondsToTime(sec) {
 
 function getBinaries() {
   var platform = ffbinaries.detectPlatform();
-  if (FS.existsSync(ffmpegPath)) return;
-  sendMsgToFrontend("successMsg", "Downloading necessary dependanicies");
+  console.log(FS.existsSync(ffmpegPath));
+  console.log(FS.existsSync(ffProbePath));
+  if (FS.existsSync(ffmpegPath) && FS.existsSync(ffProbePath)) {
+    return;
+  }
+  sendNativeNotification("Downloading necessary dependanicies", "");
   return ffbinaries.downloadFiles(
     ["ffmpeg", "ffprobe"],
-    { platform: platform, quiet: true, destination: APPDATAFOLDER },
+    { platform: platform, quiet: false, destination: APPDATAFOLDER },
     function(err, data) {
-      console.log("Downloading binaries for " + platform + ":");
-      console.log("err", err);
-      console.log("The data from downloading bins is ", data);
+      if (err) {
+        sendMsgToFrontend(
+          "dangerMsg",
+          "Enable Stable Internet Connetion To Download Required Files"
+        );
+        sendNativeNotification(
+          "Error Occured Downloading Necessary Files",
+          "Some Functionalites Will not be available"
+        );
+        console.log(err);
+      } else {
+        console.log(data);
+        sendMsgToFrontend(
+          "successMsg",
+          "Required Files Downloaded. Enjoy All The Features"
+        );
+        sendNativeNotification("Download Complete", "Enjoy.");
+      }
     }
   );
 }
@@ -593,6 +615,7 @@ function deleteFile(path) {
   FS.unlink(path.replace("file://", ""), (err) => {
     if (err) return sendMsgToFrontend("errorMsg", "Error in Deleting File");
     sendMsgToFrontend("successMsg", `${getFileName(path)} deleted`);
+    sendMsgToFrontend("purgeFromCache", [path]);
   });
   win.webContents.send("deleteComplete");
 }
@@ -617,7 +640,10 @@ async function mergeFiles(files, outputFileName) {
   command
     .on("start", function(data) {
       console.log("start data is  " + data);
-      sendMsgToFrontend("progressActionName", `Merging files to ${savePath}`);
+      sendMsgToFrontend(
+        "progressActionName",
+        `Merging files to ${outputFileName}`
+      );
     })
     .on("error", function(err) {
       console.log("An error occurred: " + err.message);
@@ -628,11 +654,18 @@ async function mergeFiles(files, outputFileName) {
       console.log("Current time is " + currentTime);
       const percent = Math.floor((currentTime * 100) / finalDuration);
       console.log(percent);
+      win.setProgressBar(percent / 100);
       sendMsgToFrontend("progressInfo", percent);
     })
     .on("end", async () => {
       console.log("Merging finished !");
       sendMsgToFrontend("successMsg", "Merging Finished");
+      sendNativeNotification(
+        "Audio Files Merged",
+        `Saved as ${outputFileName}`
+      );
+      sendMsgToFrontend("progressInfo", 100);
+      win.setProgressBar(1);
       parseAudioFile(savePath, "audioWithCover", false);
     })
     .mergeToFile(savePath);
@@ -651,4 +684,36 @@ function getTimestampFormat(string) {
   let seconds = parseInt(string.substr(7, 4));
   let timestamp = hours * 60 * 60 + minutes * 60 + seconds;
   return Math.floor(timestamp);
+}
+function sendNativeNotification(title, text) {
+  const options = {
+    title,
+    subtitle: text,
+    body: text,
+    silent: true,
+    icon: LOGO,
+  };
+  const notification = new Notification(options);
+  notification.show();
+}
+function fixTrackInfo(str) {
+  const split = str.split("-");
+  let artist;
+  let title;
+  if (str.includes("_-")) {
+    artist = split[0];
+    title = split[1];
+  } else if (str.includes("-")) {
+    artist = split[1];
+    title = split[0];
+  } else {
+    return false;
+  }
+  artist = artist.replace(/_/g, " ").trim();
+  title = title
+    .replace(/_/g, " ")
+    .replace(/\(\w.|\d.\).*/gi, "")
+    .replace(/\)/, "")
+    .trim();
+  return { artist, title };
 }

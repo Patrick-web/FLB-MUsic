@@ -6,24 +6,26 @@
         <Track v-for="track in bingTracks" :key="track.id" :trackInfo="track" />
       </div>
     </div>
-    <div class="results artistResults">
-      <h2>Artists</h2>
-      <div class="grid3_30">
-        <ArtistCard
-          v-for="artist in bingArtists"
-          :key="artist.id"
-          :artistInfo="artist"
-        />
+    <div class="aResults">
+      <div class="results artistResults">
+        <h2>Artists</h2>
+        <div class="grid3_30">
+          <ArtistCard
+            v-for="artist in bingArtists"
+            :key="artist.id"
+            :artistInfo="artist"
+          />
+        </div>
       </div>
-    </div>
-    <div class="results albumResults">
-      <h2>Albums</h2>
-      <div class="grid3">
-        <AlbumCard
-          v-for="album in bingAlbums"
-          :key="album.id"
-          :albumInfo="album"
-        />
+      <div class="results albumResults">
+        <h2>Albums</h2>
+        <div class="grid3">
+          <AlbumCard
+            v-for="album in bingAlbums"
+            :key="album.id"
+            :albumInfo="album"
+          />
+        </div>
       </div>
     </div>
   </div>
@@ -50,6 +52,9 @@ export default {
   height: 100%;
   overflow-y: scroll;
   position: relative;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
 }
 .results {
   margin-bottom: 20px;

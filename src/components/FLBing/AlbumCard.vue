@@ -82,16 +82,19 @@ export default {
     position: absolute;
     bottom: 0px;
     width: 100%;
-    background: rgb(0, 0, 0);
-    p {
+    background-color: rgba(0, 0, 0, 0.521);
+    backdrop-filter: blur(10px);
+    h4 {
       font-family: roboto-light;
     }
   }
 }
 .squareCard:hover {
   cursor: pointer;
-  .cardInfo {
-    filter: invert(1);
+  .thumbnailArea {
+    img {
+      transform: rotate(5deg) scale(1.1);
+    }
   }
 }
 #blurred {

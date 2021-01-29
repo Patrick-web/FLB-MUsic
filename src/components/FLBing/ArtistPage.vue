@@ -1,5 +1,5 @@
 <template>
-  <div class="ArtistPage">
+  <div class="APage">
     <div class="coverArea">
       <img :src="bingArtistInfo.cover" alt="" class="blurred" />
       <img class="artistImage" :src="bingArtistInfo.cover" alt="" />
@@ -49,20 +49,30 @@ export default {
 </script>
 
 <style lang="scss">
-.ArtistPage {
+.APage {
   height: 100vh;
-  margin-top: -5px;
+  margin-top: -50px;
   z-index: 5;
-  .trackTitle {
-    transform: translateY(50%);
+  .TrackCard {
+    .trackTitle {
+      transform: translateY(50%);
+    }
   }
   .coverArea {
-    height: 30%;
+    height: 40%;
     width: 100%;
     overflow: hidden;
     position: relative;
     margin-top: -20px;
-
+    background: black;
+    pre {
+      font-size: 0.5em;
+      font-family: roboto;
+      background: black;
+      width: 40px;
+      padding: 3px;
+      border-left: 2px solid white;
+    }
     h2 {
       position: absolute;
       bottom: 0px;
@@ -74,7 +84,9 @@ export default {
     }
     .blurred {
       width: 100%;
-      filter: blur(10px);
+      height: 100%;
+      filter: blur(30px);
+      opacity: 0.5;
       margin-top: -10px;
     }
     .artistImage {
@@ -83,7 +95,7 @@ export default {
       top: 50%;
       left: 50%;
       transform: translate(-50%, -50%);
-      width: 25%;
+      height: 95%;
     }
   }
   .artistPageResults {
@@ -91,6 +103,9 @@ export default {
     height: 70%;
     overflow: hidden;
     overflow-y: scroll;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
   }
 }
 </style>

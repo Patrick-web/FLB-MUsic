@@ -1,5 +1,8 @@
 <template>
   <div class="tab albumsTab">
+    <div v-if="!tracksGroupedByAlbum[0]" class="loadingArea">
+      <div class="loadingIndicator"></div>
+    </div>
     <div
       v-for="group in tracksGroupedByAlbum"
       :key="group[0]"

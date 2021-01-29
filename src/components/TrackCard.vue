@@ -57,9 +57,12 @@
 
 <script>
 import { mapMutations, mapGetters } from "vuex";
+const electron = window.require("electron");
+import Wave from "wave-visualizer";
+
 export default {
   computed: {
-    ...mapGetters(["queuedTracks"]),
+    ...mapGetters(["queuedTracks", "UIcontroller"]),
   },
   data() {
     return {};
@@ -75,6 +78,7 @@ export default {
       "removeSelectedTrackToPlaylist",
       "removeFromQueue",
       "bulkSelect",
+      "UIcontrollerToggleProperty",
     ]),
     showOptions(e) {
       e.preventDefault();
@@ -124,12 +128,13 @@ export default {
     },
     playTrack(e) {
       document.querySelector("#search").value = "";
-      if (document.querySelector(".playingPane"))
-        document.querySelector(".playingPane").classList.remove("editMode");
-      if (document.querySelector(".ModalShow")) {
-        document.querySelector(".ModalShow").classList.remove("ModalShow");
+      //Remount Tag Editor
+      if (this.UIcontroller.showTagEditor) {
+        this.UIcontrollerToggleProperty("showTagEditor");
+        setTimeout(() => {
+          this.UIcontrollerToggleProperty("showTagEditor");
+        }, 100);
       }
-      this.setEditModeValues();
       if (document.querySelector(".playingtrack")) {
         document
           .querySelector(".playingtrack")
@@ -151,6 +156,11 @@ export default {
        pause();`
         );
       }
+      const wave = new Wave();
+      wave.fromElement("audioTag", "visualizerArea", {
+        colors: ["white"],
+      });
+      electron.ipcRenderer.send("playingTrack", this.track);
     },
     setEditModeValues() {
       if (document.querySelector("#titleTag")) {

@@ -1,29 +1,27 @@
 <template>
   <div class="vMenu">
-    <div @click="toggleAddOptions()" class="vmenu-group">
+    <div
+      @click="UIcontrollerToggleProperty('showFileImporter')"
+      class="vmenu-group"
+    >
       <img src="@/assets/plus.svg" alt />
       <p style="width:100px" class="v-tooltip">Add Music</p>
     </div>
-    <div class="vmenu-group">
+    <div @click="toggleGems" class="vmenu-group">
       <img class="whiten" src="@/assets/gem.svg" alt />
       <p style="width:60px" class="v-tooltip">Gems</p>
     </div>
-    <div class="addOptions animated faster">
-      <div class="opts">
-        <div @click="emitOption('file')" class="opt">
-          <img src="@/assets/music_note.svg" alt="" />
-          <p>Select file(s)</p>
-        </div>
-        <div @click="emitOption('folder')" class="opt">
-          <img src="@/assets/folder.svg" alt="" />
-          <p>Select Folder</p>
-        </div>
-      </div>
-      <button @click="toggleAddOptions">Cancel</button>
-    </div>
-    <div class="vmenu-group">
+    <transition
+      enter-active-class="animated slideInUp extrafaster"
+      leave-active-class="animated slideOutDown extrafaster"
+    >
+      <Importer v-if="UIcontroller.showFileImporter" />
+    </transition>
+    <div
+      @click="UIcontrollerToggleProperty('showSettings')"
+      class="vmenu-group"
+    >
       <img
-        @click="showSettings"
         src="@/assets/settings.svg"
         alt=""
         class="tool vmenu-group"
@@ -40,25 +38,23 @@
 </template>
 
 <script>
-const electron = window.require("electron");
-import { mapMutations } from "vuex";
+import { mapGetters, mapMutations } from "vuex";
+import Importer from "./Importer.vue";
 export default {
+  components: { Importer },
+  computed: {
+    ...mapGetters(["UIcontroller"]),
+  },
   methods: {
-    ...mapMutations(["loadPreviouslyAddedTracks"]),
-    showSettings() {
-      document.querySelector(".Settings").classList.toggle("ModalShow");
-      document.querySelector(".MainGrid").classList.remove("showUpdates");
-    },
+    ...mapMutations([
+      "loadPreviouslyAddedTracks",
+      "UIcontrollerToggleProperty",
+    ]),
     showUpdates() {
       document.querySelector(".MainGrid").classList.toggle("showUpdates");
     },
-    emitOption(choice) {
-      if (choice === "file") {
-        electron.ipcRenderer.send("addMusicFromFile");
-      } else {
-        electron.ipcRenderer.send("addMusicFromFolder");
-      }
-      this.toggleAddOptions();
+    toggleGems() {
+      this.UIcontroller.showGems = !this.UIcontroller.showGems;
     },
     toggleAddOptions() {
       const optionsBox = document.querySelector(".addOptions");
@@ -133,44 +129,6 @@ export default {
       display: none;
     }
     filter: hue-rotate(280deg);
-  }
-}
-.showAddOptions {
-  display: block !important;
-}
-.addOptions {
-  position: fixed;
-  z-index: 10;
-  top: 43%;
-  left: 35%;
-  transform: translate(-50%, -50%);
-  background-color: rgba(0, 0, 0, 0.39);
-  backdrop-filter: blur(10px);
-  padding: 10px;
-  border-radius: 20px;
-  box-shadow: 0px 0px 50px black;
-  display: none;
-  .opts {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    color: white;
-    .opt {
-      border-radius: 20px;
-      padding: 10px;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      cursor: pointer;
-    }
-    .opt:hover {
-      background: #0062ff;
-    }
-  }
-  button {
-    width: 100%;
-    color: white;
-    font-size: 1.2em;
   }
 }
 @media (max-width: 700px) {

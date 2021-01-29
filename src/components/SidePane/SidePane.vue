@@ -1,26 +1,32 @@
 <template>
   <div class="SidePane">
     <div class="tabber">
-      <div @click="tabTo($event, 'trackInfo')" class="activeTab playingTabIcon">
+      <div
+        @click.stop="tabTo($event, 'trackInfo')"
+        class="activeTab playingTabIcon"
+      >
         <img src="@/assets/music_note.svg" alt="" />
       </div>
-      <div @click="tabTo($event, 'queuedTracks')" class="queueTabIcon">
+      <div @click.stop="tabTo($event, 'queuedTracks')" class="queueTabIcon">
         <img src="@/assets/queue_music.png" alt="" />
       </div>
-      <div @click="tabTo($event, 'lyrics')" class="lyricsTabIcon">
+      <div @click.stop="tabTo($event, 'lyrics')" class="lyricsTabIcon">
         <img src="@/assets/lyrics.svg" alt="" />
       </div>
     </div>
-    <QueuedTracks v-if="currentTab == 'queuedTracks'" />
     <TrackInfo v-if="currentTab == 'trackInfo'" />
-    <canvas v-if="settings.visualizer" id="visualizerArea"></canvas>
+    <QueuedTracks v-if="currentTab == 'queuedTracks'" />
+    <Lyrics v-if="currentTab == 'lyrics'" />
+
+    <canvas v-if="settings.visuals" id="visualizerArea"></canvas>
   </div>
 </template>
 
 <script>
 import QueuedTracks from "./QueuedTracks.vue";
 import TrackInfo from "./TrackInfo.vue";
-import { mapGetters, mapActions, mapMutations } from "vuex";
+import Lyrics from "./Lyrics.vue";
+import { mapActions, mapGetters, mapMutations } from "vuex";
 
 export default {
   data() {
@@ -29,38 +35,53 @@ export default {
     };
   },
   computed: {
-    ...mapGetters(["settings"]),
+    ...mapGetters(["settings", "UIcontroller"]),
   },
   methods: {
+    ...mapMutations(["toggleSetting"]),
     tabTo(e, target) {
       document.querySelector(".activeTab").classList.remove("activeTab");
       e.currentTarget.classList.add("activeTab");
       this.currentTab = target;
+      console.log(e.currentTarget);
     },
   },
   components: {
     QueuedTracks,
     TrackInfo,
+    Lyrics,
+  },
+  mounted() {
+    if (localStorage.getItem("tableLayout") == "true") {
+      this.toggleSetting("tableLayout");
+      document.querySelector(".MainGrid").classList.add("tableLayout");
+    }
+    if (localStorage.getItem("visuals") == "true") {
+      this.toggleSetting("visuals");
+    }
   },
 };
 </script>
 
 <style lang="scss">
 .SidePane {
-  width: 100%;
+  max-width: 300px;
   height: 100vh;
   position: relative;
+  padding-bottom: 110px;
+  overflow: hidden;
   .tabber {
     margin: auto;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
     width: 90px;
     backdrop-filter: blur(10px);
-    background-color: rgba(70, 70, 70, 0.274);
+    background-color: rgba(0, 0, 0, 0.205);
+    border-right: 1px solid white;
+    border-left: 1px solid white;
     position: sticky;
     z-index: 21;
-    border-radius: 10px;
+    border-radius: 20px;
     top: 6px;
     left: 40%;
     overflow: hidden;
@@ -69,21 +90,27 @@ export default {
       display: flex;
       align-items: center;
       justify-content: center;
+      border-bottom: 1px solid rgba(255, 255, 255, 0);
+      border-top: 1px solid rgba(255, 255, 255, 0);
       cursor: pointer;
     }
     img {
       width: 20px;
     }
     .activeTab {
-      background: #0062ff;
+      background: #f8f8f82d;
+      border-bottom: 1px solid white;
+      border-top: 1px solid white;
     }
   }
   #visualizerArea {
     position: absolute;
-    top: 65%;
+    top: 48%;
+    right: 0;
     width: 100%;
-    z-index: 5;
-    opacity: 0.5;
+    z-index: -1;
+    opacity: 0.8;
+    transform: rotate(90deg) translateY(-50%);
   }
 }
 </style>

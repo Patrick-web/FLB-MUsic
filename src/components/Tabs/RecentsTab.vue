@@ -23,33 +23,16 @@ export default {
     TrackCard,
   },
   methods: {
-    ...mapMutations(["addToRecents", "clearRecentsAndPlaylists"]),
+    ...mapMutations(["addToRecents"]),
     loadRecentsFromDB() {
       const recents = JSON.parse(localStorage.getItem("recentlyPlayed"));
       if (recents) {
-        setTimeout(() => {
-          electron.ipcRenderer.send("parseRecentlyPlayed", recents);
-        }, 2500);
+        recents.forEach((track) => this.addToRecents(track));
       }
     },
   },
   mounted() {
-    electron.ipcRenderer.on("addToRecents", (event, track) => {
-      this.addToRecents(track);
-    });
-    electron.ipcRenderer.on("removePlayingTrack", (event, track) => {
-      this.clearRecentsAndPlaylists();
-      setTimeout(() => {
-        this.loadRecentsFromDB(track);
-      }, 100);
-    });
-    electron.ipcRenderer.on("deleteComplete", (event, track) => {
-      this.clearRecentsAndPlaylists();
-      setTimeout(() => {
-        this.loadRecentsFromDB(track);
-      }, 100);
-    });
-    // this.loadRecentsFromDB();
+    this.loadRecentsFromDB();
   },
 };
 </script>

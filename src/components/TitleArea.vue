@@ -55,6 +55,7 @@ export default {
       document
         .querySelectorAll(".ExpansionPanel")
         .forEach((panel) => panel.classList.add("expanded_for_search"));
+      document.querySelector("#resetArtistTab").click();
     },
     clearSearch() {
       this.query = "";

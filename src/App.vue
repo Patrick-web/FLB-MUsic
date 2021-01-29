@@ -1,5 +1,5 @@
 <template>
-  <div @click="cleanUp" class="MainGrid">
+  <div @click="cleanUp" class="MainGrid tableLayout">
     <img :src="playingTrack.cover" id="bg_fancy" alt="" />
     <img
       id="logo"
@@ -10,13 +10,28 @@
     <ProgressBar />
     <Profile />
     <Updates />
-    <PlaylistAdder />
+    <transition
+      enter-active-class="animated slideInUp extrafaster"
+      leave-active-class="animated slideOutDown extrafaster"
+    >
+      <PlaylistWidget v-if="UIcontroller.showPlaylistWidget" />
+    </transition>
     <div class="featuresSwitcherArea">
       <FeaturesSwitcher />
-      <Settings />
+      <transition
+        enter-active-class="animated slideInUp extrafaster"
+        leave-active-class="animated slideOutDown extrafaster"
+      >
+        <Settings v-if="UIcontroller.showSettings" />
+      </transition>
     </div>
     <div class="centralArea">
-      <!-- <Gems /> -->
+      <transition
+        enter-active-class="animated extrafaster slideInUp"
+        leave-active-class="animated extrafaster slideOutDown"
+      >
+        <Gems v-if="UIcontroller.showGems" />
+      </transition>
       <TitleArea />
       <TabSwitcher />
       <div class="tabsWrapper">
@@ -48,7 +63,7 @@ import TitleArea from "@/components/TitleArea.vue";
 import FeaturesSwitcher from "@/components/FeaturesSwitcher.vue";
 import PlayingPane from "@/components/PlayingPane.vue";
 import SidePane from "@/components/SidePane/SidePane.vue";
-import PlaylistAdder from "@/components/PlaylistAdder.vue";
+import PlaylistWidget from "@/components/PlaylistWidget.vue";
 import Gems from "@/components/Gems.vue";
 import Profile from "@/components/Profile.vue";
 import Settings from "@/components/Settings.vue";
@@ -71,7 +86,7 @@ export default {
     FeaturesSwitcher,
     PlayingPane,
     SidePane,
-    PlaylistAdder,
+    PlaylistWidget,
     Gems,
     Profile,
     Settings,
@@ -93,6 +108,7 @@ export default {
       "tracksGroupedByArtist",
       "tracksGroupedByAlbum",
       "playlists",
+      "UIcontroller",
     ]),
   },
   methods: {
@@ -115,31 +131,6 @@ export default {
       if (document.querySelector(".showOptions")) {
         document.querySelector(".showOptions").classList.remove("showOptions");
       }
-    },
-    showQueue(e) {
-      document
-        .querySelector(".playingPaneArea .activeTab")
-        .classList.remove("activeTab");
-      e.currentTarget.classList.add("activeTab");
-      document.querySelector(".playingPaneArea").classList.add("showQueue");
-      document.querySelector(".QueuedTracks").classList.add("slideInRight");
-      document
-        .querySelector(".QueuedTracks")
-        .classList.replace("slideOutRight", "slideInRight");
-    },
-    hideQueue(e) {
-      document
-        .querySelector(".playingPaneArea .activeTab")
-        .classList.remove("activeTab");
-      e.currentTarget.classList.add("activeTab");
-      document
-        .querySelector(".QueuedTracks")
-        .classList.replace("slideInRight", "slideOutRight");
-      setTimeout(() => {
-        document
-          .querySelector(".playingPaneArea")
-          .classList.remove("showQueue");
-      }, 300);
     },
   },
   mounted() {
@@ -200,6 +191,9 @@ export default {
     document.addEventListener("dragover", (e) => {
       e.preventDefault();
       e.stopPropagation();
+    });
+    window.addEventListener("online", () => {
+      electron.ipcRenderer.send("downloadBinaries");
     });
   },
 };
@@ -326,20 +320,15 @@ body {
   height: 100vh;
   padding-left: 40px;
 }
-.traditionalLayout {
-  .tab {
-    padding-bottom: 110px;
-  }
-}
+
 .tab {
-  height: 83vh;
+  height: 69vh;
   overflow: hidden;
   overflow-y: scroll;
   padding-top: 10px;
 }
 .expanded {
   margin: 10px;
-  border-radius: 10px;
   overflow: hidden;
   .body {
     max-height: 380px !important;

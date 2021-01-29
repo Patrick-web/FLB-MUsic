@@ -1,7 +1,8 @@
 import Vue from "vue";
 import Vuex from "vuex";
 Vue.use(Vuex);
-
+import * as microTasks from "../Utils/microTasks.js";
+import { searchAndParse } from "../Utils/LyricsEngine.js";
 export default new Vuex.Store({
   state: {
     addedTracks: [],
@@ -34,12 +35,8 @@ export default new Vuex.Store({
     discoverTracks: [],
     discoverArtists: [],
     settings: {
-      perfomanceMode: false,
-      forceDeezerDarkMode: false,
-      visualizer: true,
-      compactMode: false,
-      fakeLightMode: false,
-      traditionalLayout: false,
+      visuals: false,
+      tableLayout: false,
     },
     bulkSelected: [],
     bingAlbums: [],
@@ -47,6 +44,14 @@ export default new Vuex.Store({
     bingTracks: [],
     bingArtistInfo: null,
     bingAlbumInfo: null,
+    UIcontroller: {
+      showGems: false,
+      showSettings: false,
+      showFileImporter: false,
+      showTagEditor: false,
+      showPlaylistWidget: false,
+    },
+    artistPictures: [],
   },
   mutations: {
     switchTab: (state, tab) => {
@@ -95,7 +100,7 @@ export default new Vuex.Store({
       state.addedTracks.splice(index, 1);
       console.log("Removing " + index);
     },
-    sortTracks: (state, param) => {
+    sortArrayOfObjects: (state, [targetArray, param]) => {
       function compare(a, b) {
         if (a[`${param}`] < b[`${param}`]) {
           return -1;
@@ -105,7 +110,7 @@ export default new Vuex.Store({
         }
         return 0;
       }
-      state.addedTracks.sort(compare);
+      state[`${targetArray}`].sort(compare);
     },
     reverseAddedTracksArray: (state) => state.addedTracks.reverse(),
     setPlayingTrack: (state, track) => {
@@ -123,6 +128,7 @@ export default new Vuex.Store({
           });
         }
       }, 100);
+      searchAndParse(track);
     },
     setRepeat: (state) => (state.repeat = !state.repeat),
     toggleShuffler: (state) => {
@@ -142,13 +148,21 @@ export default new Vuex.Store({
         );
       }
     },
-    populateByArtistGroup: (state) => {
+    populateByArtistGroup: async (state) => {
       const groupMap = groupBy(state.addedTracks, (track) => track.artist);
-      state.groupedByArtist = Array.from(groupMap.entries());
+      state.groupedByArtist = Array.from(groupMap.entries()).sort();
+      const artistNames = state.groupedByArtist.map(
+        (artistArrayObj) => artistArrayObj[0]
+      );
+      state.artistPictures = JSON.parse(localStorage.getItem("artistPictures"));
+
+      await microTasks.getArtistPhotos(artistNames).then((res) => {
+        state.artistPictures = res;
+      });
     },
     populateByAlbumGroup: (state) => {
       const groupMap = groupBy(state.addedTracks, (track) => track.album);
-      state.groupedByAlbum = Array.from(groupMap.entries());
+      state.groupedByAlbum = Array.from(groupMap.entries()).sort();
     },
     addPlaylist: (state, newPlaylist) => {
       state.playlists.forEach((playlist, index) => {
@@ -270,8 +284,8 @@ export default new Vuex.Store({
         }
       });
     },
-    setSetting(state, [targetSetting, settingState]) {
-      state.settings[`${targetSetting}`] = settingState;
+    toggleSetting(state, setting) {
+      state.settings[`${setting}`] = !state.settings[`${setting}`];
     },
     bulkSelect: (state, track) => {
       let wasAlreadySelected = false;
@@ -293,6 +307,9 @@ export default new Vuex.Store({
     setBingAlbums: (state, albums) => (state.bingAlbums = albums),
     setBingArtistInfo: (state, info) => (state.bingArtistInfo = info),
     setBingAlbumInfo: (state, info) => (state.bingAlbumInfo = info),
+    UIcontrollerToggleProperty: (state, property) => {
+      state.UIcontroller[`${property}`] = !state.UIcontroller[`${property}`];
+    },
   },
   getters: {
     queuedTracks: (state) => state.queue,
@@ -316,6 +333,8 @@ export default new Vuex.Store({
     bingAlbums: (state) => state.bingAlbums,
     bingArtistInfo: (state) => state.bingArtistInfo,
     bingAlbumInfo: (state) => state.bingAlbumInfo,
+    UIcontroller: (state) => state.UIcontroller,
+    artistPictures: (state) => state.artistPictures,
   },
   actions: {
     determineNextTrack(state) {

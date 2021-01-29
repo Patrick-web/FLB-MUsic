@@ -55,6 +55,8 @@ export default {
   height: 100vh;
   width: 100%;
   opacity: 1;
+  overflow: hidden;
+  overflow-x: scroll;
   .TrackCard {
     display: grid;
     grid-template-columns: 1fr 5fr;

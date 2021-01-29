@@ -1,8 +1,19 @@
 <template>
   <div class="playingPane animated faster">
+    <img
+      @click="expandPlayingPane"
+      id="expandPlayingPane"
+      src="@/assets/arrowDown.svg"
+      alt=""
+    />
     <div v-if="!playingTrack.title" class="noMusicPlaying"></div>
     <img :src="playingTrack.cover" alt="" id="blurred" />
-    <img id="cover" :src="playingTrack.cover" alt="" />
+    <img
+      @dblclick="toggleFromFavourites"
+      id="cover"
+      :src="playingTrack.cover"
+      alt=""
+    />
     <div @click="toggleIsPlaying" id="pauseBt" class="iconsWrapper">
       <img
         v-if="!isPlaying"
@@ -29,7 +40,7 @@
       <div class="volumeRockerArea">
         <img src="@/assets/volume_down.svg" alt="" />
         <input
-          class="inputElem"
+          id="volume"
           @change="adjustVolume"
           v-model="volume"
           type="range"
@@ -37,38 +48,35 @@
           max="1"
           step="0.1"
           name=""
-          id=""
         />
       </div>
-
       <div v-if="playingTrack.title" class="control play_controls">
-        <div @click="playPrev" id="prevTrackBt" class="iconBt">
+        <button @click="playPrev" id="prevTrackBt" class="iconBt">
           <img
             style="transform:rotate(-180deg)"
             src="@/assets/play_arrow.svg"
             alt=""
           />
-        </div>
-        <div @click="toggleFromFavourites" id="favorIcon" class="iconBt">
+        </button>
+        <button @click="toggleFromFavourites" id="favorIcon" class="iconBt">
           <img width="18px" src="@/assets/flash-outline.png" alt="" />
-        </div>
-        <div id="nextTrackBt" @click="determineNextTrack" class="iconBt">
+        </button>
+        <button id="nextTrackBt" @click="determineNextTrack" class="iconBt">
           <img src="@/assets/play_arrow.svg" alt="" />
-        </div>
+        </button>
       </div>
       <div class="control extra_controls" v-if="playingTrack.title">
-        <div @click="showPlaylistAdder" class="iconBt">
+        <button @click="showPlaylistAdder" id="playlistBt" class="iconBt">
           <img id="plIcon" src="@/assets/playlist_add.svg" alt="" />
-        </div>
-        <div @click="toggleRepeatMode" id="repeatIcon" class="iconBt">
+        </button>
+        <button @click="toggleRepeatMode" id="repeatIcon" class="iconBt">
           <img id="plIcon" src="@/assets/repeat_one.svg" alt="" />
-        </div>
-        <div @click="toggleShuffleMode" id="shuffleIcon" class="iconBt">
+        </button>
+        <button @click="toggleShuffleMode" id="shuffleIcon" class="iconBt">
           <img src="@/assets/shuffle.svg" alt="" />
-        </div>
+        </button>
       </div>
     </div>
-    <!-- <CoverSearcher /> -->
   </div>
 </template>
 
@@ -76,10 +84,7 @@
 import TrackBar from "@/components/TrackBar.vue";
 import { mapGetters, mapActions, mapMutations } from "vuex";
 import Wave from "wave-visualizer";
-import * as gis from "g-i-s";
-import CoverSearcher from "@/components/CoverSearcher.vue";
-
-const electron = window.require("electron");
+import particleBg from "@/components/particleBg.vue";
 
 export default {
   computed: {
@@ -99,6 +104,7 @@ export default {
       selectedCover: "",
       volume: 1,
       isOnline: false,
+      visualsOffDueToBlur: false,
     };
   },
   methods: {
@@ -112,7 +118,14 @@ export default {
       "setRepeat",
       "toggleShuffler",
       "toggleIsPlaying",
+      "UIcontrollerToggleProperty",
+      "setSetting",
     ]),
+    expandPlayingPane() {
+      document
+        .querySelector(".MainGrid")
+        .classList.toggle("fullScreenPlayingPane");
+    },
     adjustVolume() {
       document.querySelector("audio").volume = this.volume;
     },
@@ -131,17 +144,7 @@ export default {
     },
     showPlaylistAdder() {
       this.selectATrack();
-      document.querySelector("#PlaylistAdder").classList.add("ModalShow");
-    },
-    selectCover(url) {
-      this.selectedCover = url;
-      document.querySelector("#coverArtTag").src = url;
-    },
-    importCover() {
-      electron.ipcRenderer.send("importCoverArt");
-    },
-    openCoverSearcher() {
-      document.querySelector("#CoverSearcher").classList.add("ModalShow");
+      this.UIcontrollerToggleProperty("showPlaylistWidget");
     },
     enterEditMode() {
       document.querySelector("#pauseBt img").click();
@@ -248,18 +251,8 @@ export default {
   mounted() {
     const wave = new Wave();
     wave.fromElement("audioTag", "visualizerArea", {
-      type: "wave",
+      stroke: 1,
       colors: ["white"],
-    });
-    electron.ipcRenderer.on("tagWriteError", () => {
-      const noti = this.$vs.notify({
-        color: "danger",
-        position: "top-center",
-        title: "An error occured while changing song info",
-      });
-    });
-    electron.ipcRenderer.on("importedCoverArt", (e, data) => {
-      document.querySelector("#coverArtTag").src = data;
     });
     window.addEventListener("keydown", (e) => {
       if (!document.activeElement.classList.contains("inputElem")) {
@@ -277,21 +270,114 @@ export default {
           if (e.code === "KeyS") {
             document.querySelector("#search").focus();
           }
+          if (e.code === "ArrowLeft" || e.code === "ArrowRight") {
+            document.querySelector("#volume").focus();
+          }
         }
       }
     });
   },
   components: {
     TrackBar,
-    CoverSearcher,
+    particleBg,
   },
 };
 </script>
 
 <style lang="scss">
-.compactMode {
-  .trackAdditionalInfo {
+.fullScreenPlayingPane {
+  .playingPane {
+    height: 100vh;
+    left: 0;
+    width: 100vw;
+    z-index: 60;
+    #particles-js {
+      display: block !important;
+    }
+  }
+  #visualizerArea {
     display: none;
+  }
+  #expandPlayingPane {
+    left: 50%;
+    transform: rotate(180deg);
+  }
+  #cover {
+    position: absolute;
+    top: 40px;
+    left: 50%;
+    transform: translateX(-50%);
+    max-width: 400px !important;
+    width: 400px;
+    min-width: 200px !important;
+    max-height: 800px !important;
+  }
+  #blurred {
+    height: 100vh !important;
+    top: 0% !important;
+  }
+  #trackName {
+    position: absolute;
+    bottom: 200px;
+    left: 20px;
+    font-size: 6rem;
+    font-family: roboto-thick;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    overflow: hidden;
+    width: 99%;
+  }
+  #artistName {
+    position: absolute;
+    bottom: 120px;
+    left: 25px;
+    font-size: 3em;
+  }
+  #pauseBt {
+    position: absolute;
+    bottom: 50px;
+    left: 50%;
+    img {
+      width: 50px;
+    }
+  }
+  .volumeRockerArea {
+    display: none !important;
+  }
+  .controls {
+    position: absolute;
+    bottom: 120px;
+    right: 20px;
+    #playlistBt {
+      display: none;
+    }
+    button {
+      transform: scale(1.3);
+      margin: 20px;
+      margin-bottom: 10px;
+      margin-top: 10px;
+    }
+    .play_controls {
+      border: none;
+    }
+  }
+  .TrackBar {
+    position: absolute;
+    bottom: 0px;
+    left: 20px;
+    width: 98%;
+    .seekBar {
+      background: rgba(255, 255, 255, 0.082);
+      border-radius: 0;
+      height: 4px;
+      .seekProgress {
+        background: white;
+        border-radius: 0;
+      }
+    }
+    .seekBar:hover {
+      height: 8px;
+    }
   }
 }
 .favored {
@@ -334,6 +420,16 @@ export default {
     z-index: 5;
   }
 }
+#particles-js {
+  display: none;
+  background-size: cover;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -1;
+}
 .playingPane {
   position: fixed;
   left: 0;
@@ -366,27 +462,15 @@ export default {
       cursor: pointer;
     }
   }
-  .possibleCovers {
-    width: 100%;
-    overflow: hidden;
-    overflow-y: scroll;
-    max-height: 130px;
-    img {
-      width: 100%;
-      cursor: pointer;
-    }
-    img:hover {
-      transform: scale(0.9);
-    }
-  }
+
   #blurred {
     position: absolute;
     top: -20px;
     left: 0;
     width: 100%;
     height: 120%;
-    filter: blur(20px);
-    opacity: 0.7;
+    filter: blur(15px);
+    opacity: 0.5;
     z-index: -1;
   }
   .bordered {
@@ -401,35 +485,24 @@ export default {
   display: flex;
   align-items: center;
   justify-content: center;
+  button {
+    margin-left: 5px;
+    margin-right: 5px;
+  }
   .control {
     display: flex;
     justify-content: space-between;
     align-items: center;
     overflow: hidden;
     transition: 0.2s ease;
-    .iconBt {
-      padding: 5px;
-      margin: 5px;
-      border-radius: 40px;
-      background: rgba(0, 64, 255, 0);
-      transition: 0.2s ease-in-out;
-      border: 1px solid rgba(255, 255, 255, 0);
-    }
-    .iconBt:hover {
-      cursor: pointer;
-      border: 1px solid rgb(255, 255, 255);
-      img {
-        // filter: invert(100%);
-      }
-    }
   }
   .play_controls {
     border-right: 1px solid white;
   }
   .volumeRockerArea {
     position: absolute;
-    left: 9%;
-    bottom: 0;
+    left: 35px;
+    bottom: -2px;
     width: 200px;
     transform: translate(0, 95%);
     z-index: 3;
@@ -438,9 +511,8 @@ export default {
     justify-content: center;
     border-radius: 10px;
     input {
-      width: 53%;
+      width: 65%;
       height: 2px;
-      opacity: 0;
       cursor: pointer;
       filter: grayscale(0.9);
     }
@@ -450,6 +522,13 @@ export default {
       opacity: 1;
     }
   }
+}
+#expandPlayingPane {
+  position: absolute;
+  top: 8px;
+  left: 97%;
+  width: 20px;
+  cursor: pointer;
 }
 .noMusicPlaying {
   position: absolute;

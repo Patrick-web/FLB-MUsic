@@ -1,175 +1,232 @@
 <template>
   <div class="TagEditor">
+    <p class="modalClose" @click="UIcontrollerToggleProperty('showTagEditor')">
+      <img src="@/assets/x.svg" alt="" />
+    </p>
+    <h2 class="modalTitle">Tag Editor</h2>
     <div class="trackTags">
-      <img id="coverArtTag" :src="playingTrack.cover" alt="" />
-      <h4 @click="importCover" id="selectCoverArt">Import Cover Art</h4>
-      <div>
-        <h4>Name</h4>
-        <p
-          id="titleTag"
+      <img id="coverArtTag" :src="newAlbumArt" alt="" />
+      <button @click="importCover" id="selectCoverArt">
+        <h4>Import Album Art</h4>
+      </button>
+      <div class="tag">
+        <p>Title</p>
+        <input v-model="newTitle" id="titleTag" class="inputElem" />
+      </div>
+      <div class="tag">
+        <p>Artist</p>
+        <input v-model="newArtist" class="inputElem" id="artistTag" />
+      </div>
+      <div class="tag">
+        <p>Album</p>
+        <input v-model="newAlbum" class="inputElem" id="albumTag" />
+      </div>
+      <div v-if="isOnline" class="possibleCovers">
+        <p>Album Art Search</p>
+        <input
+          type="text"
+          v-model="query"
+          @keyup.enter="searchImage"
           class="inputElem"
-          @change="changeAlbumSearchQuery"
-          contenteditable
-        >
-          {{ playingTrack.title }}
-        </p>
-      </div>
-      <div>
-        <h4>Artist</h4>
-        <p contenteditable class="inputElem" id="artistTag">
-          {{ playingTrack.artist }}
-        </p>
-      </div>
-      <div>
-        <h4>Album</h4>
-        <p contenteditable class="inputElem" id="albumTag">
-          {{ playingTrack.album }}
-        </p>
-      </div>
-      <div class="possibleCovers">
-        <button @click="openCoverSearcher">
-          <h3 style="text-align:center">Open Cover Searcher📔</h3>
-        </button>
-        <br />
-        <div
-          v-if="possibleThumbnails.length == 0 && isOnline"
-          class="loadingArea"
-        >
+        />
+        <div v-if="possibleAlbumArt.length == 0" class="loadingArea">
           <div class="loadingIndicator"></div>
         </div>
-        <img
-          v-for="cover in possibleThumbnails"
-          :key="cover.url"
-          :src="cover.url"
-          alt=""
-          @click="selectCover(cover.url)"
-        />
+        <div class="possibles">
+          <img
+            v-for="cover in possibleAlbumArt"
+            :key="cover.url"
+            :src="cover.url"
+            alt=""
+            @click="selectCover(cover.url)"
+          />
+        </div>
       </div>
     </div>
-    <div class="editModeBtns animated faster">
-      <p @click="saveChanges" id="saveChanges">Save Changes</p>
-      <p @click="exitEditMode" id="exitEditMode">Exit Edit Mode</p>
+    <div class="animated faster">
+      <button @click="saveChanges" id="saveChanges">
+        <h3>Save Changes</h3>
+      </button>
     </div>
   </div>
 </template>
 
 <script>
+import { mapGetters, mapMutations } from "vuex";
+const electron = window.require("electron");
+import * as gis from "g-i-s";
+
 export default {
+  data() {
+    return {
+      possibleAlbumArt: [],
+      selectedCover: "",
+      isOnline: false,
+      newTitle: "",
+      newAlbum: "",
+      newArtist: "",
+      newAlbumArt: "",
+      query: "",
+    };
+  },
   computed: {
     ...mapGetters(["playingTrack", "indexInFavorites", "settings"]),
   },
   methods: {
+    ...mapMutations(["UIcontrollerToggleProperty"]),
+    openCoverSearcher() {
+      document.querySelector("#CoverSearcher").classList.add("ModalShow");
+    },
+    selectCover(url) {
+      this.selectedCover = url;
+      document.querySelector("#coverArtTag").src = url;
+    },
+    importCover() {
+      electron.ipcRenderer.send("importCoverArt");
+    },
     saveChanges() {
-      const title = document.querySelector("#titleTag").textContent.trim();
-      const artist = document.querySelector("#artistTag").textContent;
-      const album = document.querySelector("#albumTag").textContent;
-      let cover = document.querySelector("#coverArtTag").src;
+      let newAlbumArtSrc = document.querySelector("#coverArtTag").src;
       let tags = {};
-      if (title != this.playingTrack.title.trim()) {
-        tags["title"] = title;
+      if (this.title != this.newTitle) {
+        tags["title"] = this.newTitle;
       }
-      if (artist != this.playingTrack.artist) {
-        tags["artist"] = artist;
+      if (this.artist != this.newArtist) {
+        tags["artist"] = this.newArtist;
       }
-      if (album != this.playingTrack.album) {
-        tags["album"] = album;
+      if (this.album != this.newAlbum) {
+        tags["album"] = this.newAlbum;
       }
-      if (cover != this.playingTrack.cover) {
-        tags.APIC = document.querySelector("#coverArtTag").src;
+      if (this.albumArt != newAlbumArtSrc) {
+        tags.APIC = newAlbumArtSrc;
       }
       const data = {
-        path: this.playingTrack.path.replace("file://", ""),
+        path: this.trackPath.replace("file://", ""),
         tags: tags,
       };
-      console.log(Object.keys(data.tags).length);
       if (Object.keys(data.tags).length !== 0) {
-        electron.ipcRenderer.send("updateTrackInfo", data);
+        this.$emit("changedTags", data);
         console.log("=======sent======");
+        electron.ipcRenderer.send("updateTags", data);
       }
-      this.exitEditMode();
+      this.UIcontrollerToggleProperty("showTagEditor");
     },
+    searchImage() {
+      console.log(this.query);
+      this.possibleAlbumArt = [];
+      gis(this.query, (error, results) => {
+        console.log("logging results");
+        if (error) {
+          console.log(error);
+        } else {
+          if (results.length > 1) {
+            this.possibleAlbumArt = results.slice(0, 10);
+          }
+        }
+      });
+    },
+  },
+  mounted() {
+    this.newTitle = this.title;
+    this.query = `${this.title} by ${this.artist} album art`;
+    this.newArtist = this.artist;
+    this.newAlbum = this.album;
+    this.newAlbumArt = this.albumArt;
+    electron.ipcRenderer.on("tagWriteError", () => {
+      const noti = this.$vs.notify({
+        color: "danger",
+        position: "top-center",
+        title: "An error occured while changing song info",
+      });
+    });
+    electron.ipcRenderer.on("importedCoverArt", (e, data) => {
+      document.querySelector("#coverArtTag").src = data;
+    });
+    this.isOnline = navigator.onLine;
+    if (this.isOnline) {
+      this.searchImage();
+    }
+    window.addEventListener("online", () => {
+      this.isOnline = true;
+    });
+    window.addEventListener("offline", () => {
+      this.isOnline = false;
+    });
+  },
+  props: {
+    albumArt: String,
+    title: String,
+    album: String,
+    artist: String,
+    trackPath: String,
   },
 };
 </script>
 
-<style>
-.trackTags {
-  background-color: rgba(100, 100, 100, 0.062);
-  position: absolute;
-  top: 0;
-  width: 100%;
-  z-index: 10;
+<style lang="scss">
+.TagEditor {
+  position: fixed;
+  background-color: rgba(0, 0, 0, 0.39);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.315);
+  box-shadow: 0px 0px 50px black;
+  padding: 10px;
+  top: 8%;
+  left: 60%;
+  z-index: 50;
+  width: 250px;
   color: white;
-  display: none;
-  transition: 0.2s ease;
-  #selectCoverArt {
-    position: relative;
-    z-index: 5;
-    text-align: center;
-    transform: translateY(50%) translateX(-50%);
-    width: 50%;
-    left: 50%;
-    padding: 5px;
-    border-radius: 10px;
-    background: rgba(12, 12, 12, 0.863);
-    cursor: pointer;
-    transition: 0.2s ease;
-  }
-  #selectCoverArt:hover {
-    border-radius: 20px;
-    background: #0062ff;
+
+  p {
+    font-family: roboto-thin;
+    margin-bottom: 5px;
   }
   #coverArtTag {
-    width: 230px;
+    width: 200px;
     margin-top: 10px;
-    margin-bottom: -30px;
-    margin-left: 20px;
+    margin-left: 15px;
   }
-  div {
+  .tag {
     padding: 10px;
-    border-bottom: 1px solid gray;
-    p {
-      font-family: roboto-light;
-    }
   }
-}
-.editModeBtns {
-  position: absolute;
-  z-index: 4;
-  left: 0%;
-  bottom: 0px;
-  width: 100%;
-  height: 140px;
-  padding: 10px;
-  display: none;
-  flex-direction: column;
-  justify-content: space-around;
-  align-items: center;
-  overflow: hidden;
-  transition: 0.2s ease;
-  color: white;
-  background-color: rgba(100, 100, 100, 0.062);
-  p {
+
+  .bt {
     padding: 5px;
+    margin-bottom: 10px;
     padding-top: 8px;
-    padding-bottom: 8px;
     width: 100%;
     text-align: center;
     border-radius: 20px;
     font-size: 1.2em;
     font-family: roboto;
     transition: 0.2s ease;
+    background: rgba(255, 255, 255, 0.055);
     cursor: pointer;
   }
   p:hover {
     border-radius: 12px;
   }
-  #saveChanges {
-    background: rgb(255, 255, 255);
-    color: black;
-  }
-  #exitEditMode {
-    background: rgb(209, 1, 46);
+  .possibleCovers {
+    padding: 10px;
+    position: absolute;
+    left: -2px;
+    bottom: 0px;
+    transform: translateX(-100%);
+    background-color: rgb(0, 0, 0);
+    backdrop-filter: blur(10px);
+    width: 100%;
+    .possibles {
+      margin-top: 10px;
+      height: 400px;
+      overflow: hidden;
+      overflow-y: scroll;
+    }
+    img {
+      width: 100%;
+      cursor: pointer;
+    }
+    img:hover {
+      transform: scale(0.9);
+    }
   }
 }
 </style>
